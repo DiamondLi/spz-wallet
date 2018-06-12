@@ -1,14 +1,13 @@
 'use strict'
 const Provider = require('../src/common/provider.js');
-const logger = require('../src/common/log.js')
+const log4js = require('../src/common/log.js');
+const logger = log4js.getLogger();
 const MAINNET = "mainnet";
 const TESTNET = "testnet";
 let provider;
 try {
 	provider = new Provider();
-	console.log(provider.getMasterProvider(MAINNET));
-	console.log(provider.getWorkerProviders(TESTNET));
-	logger.info()
+	logger.info(provider.getWorkerProviders(TESTNET));
 } catch (err) {
-	console.log(err);
+	logger.error(err);
 }

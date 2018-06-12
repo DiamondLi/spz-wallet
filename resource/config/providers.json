@@ -17,7 +17,7 @@
 		"testnet" : {
 			"providers" : [
 				"https://ropsten.infura.io/JHsRSUXVUlcgCpl29o20",
-				"aaaaa"
+				"aaaaa",
 			]
 		}
 	}

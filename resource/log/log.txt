@@ -1,0 +1,67 @@
+[2018-06-12T16:22:58.022] [ERROR] info - SyntaxError: Unexpected token ] in JSON at position 442
+    at JSON.parse (<anonymous>)
+    at new Provider (E:\extract_client\src\common\provider.js:17:23)
+    at Object.<anonymous> (E:\extract_client\test\test.js:9:13)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Function.Module.runMain (module.js:693:10)
+    at startup (bootstrap_node.js:191:16)
+[2018-06-12T16:58:21.008] [ERROR] info - { Error: ENOENT: no such file or directory, open 'E:\extract_client\test\111.xlsx'
+    at Object.fs.openSync (fs.js:646:18)
+    at Object.fs.readFileSync (fs.js:551:33)
+    at read_binary (E:\extract_client\node_modules\xlsx\xlsx.js:1881:44)
+    at readSync (E:\extract_client\node_modules\xlsx\xlsx.js:19240:69)
+    at Object.readFileSync (E:\extract_client\node_modules\xlsx\xlsx.js:19268:9)
+    at Object.parse (E:\extract_client\node_modules\node-xlsx\lib\index.js:24:86)
+    at Excel.read (E:\extract_client\src\excel\excel.js:26:19)
+    at Object.<anonymous> (E:\extract_client\test\test_excel.js:12:20)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'E:\\extract_client\\test\\111.xlsx' }
+[2018-06-12T16:58:56.473] [ERROR] info - TypeError: Cannot read property 'length' of undefined
+    at Excel.read (E:\extract_client\src\excel\excel.js:29:12)
+    at Object.<anonymous> (E:\extract_client\test\test_excel.js:12:20)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Function.Module.runMain (module.js:693:10)
+    at startup (bootstrap_node.js:191:16)
+    at bootstrap_node.js:612:3
+[2018-06-12T16:59:56.480] [ERROR] info - 导入数据格式不正确
+[2018-06-12T17:04:50.594] [INFO] info - [ { id: '1',
+    member_id: 95,
+    account_id: 8,
+    create_time: 43251.68067129629,
+    auth_time: undefined,
+    auditor_id: undefined,
+    order_id: 0,
+    from_address: 'address5',
+    to_address: 'address4',
+    num: 1000,
+    miner_fee: undefined,
+    fee: 10,
+    status: 0,
+    coin_id: 5,
+    coin_name: 'USDT',
+    tx_hash: undefined,
+    result: undefined,
+    remarks: undefined } ]
+[2018-06-12T17:47:15.603] [ERROR] info - SyntaxError: Unexpected token ] in JSON at position 442
+    at JSON.parse (<anonymous>)
+    at new Provider (E:\extract_client\src\common\provider.js:17:23)
+    at Object.<anonymous> (E:\extract_client\test\test.js:9:13)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Function.Module.runMain (module.js:693:10)
+    at startup (bootstrap_node.js:191:16)
