@@ -9,19 +9,26 @@ const Web3 = require('web3');
 
 class Contract {
 
-	constructor() {}
+	constructor(provider) {
+		this.provider = provider;
+		this.web3 = new Web3(new HttpProvider(this.provider));
+	}
 
 	/** */
-	getBalance(provider,address,tokenAddress) {
-		let web3 = new Web3(new HttpProvider(provider));
+	getBalance(address,tokenAddress) {
+		let data = this.encodeBalanceOfFunction(this.web3,address);
+		let tx = {
+			to : tokenAddress,
+			data : data
+		};
+		return this.web3.eth.call(tx);
 	}
 
-	signTransaction(provider,fromAccount,toAddress,amount,tokenAddress) {
-		let web3 = new Web3(new HttpProvider(provider));
+	signTransaction(fromAccount,toAddress,amount,tokenAddress) {
+
 	}
 
-	estimateGas(provider,fromAddress,toAddress,amount,tokenAddress) {
-		let web3 = new Web3(new HttpProvider(provider));
+	estimateGas(fromAddress,toAddress,amount,tokenAddress) {
 		let tx = {
 			from : fromAddress,
 			to : toAddress,
@@ -46,7 +53,19 @@ class Contract {
 		return web3.eth.abi.encodeFunctionCall(object,array);
 	}
 
-	
+	encodeBalanceOfFunction(web3,toAddress) {
+		let object = {
+			name : "balanceOf",
+			type : "function",
+			inputs : [ {
+					type : 'address',
+					name : 'address'
+				}
+			]
+		};
+		let array = [toAddress];
+		return web3.eth.abi.encodeFunctionCall(object,array);
+	}
 
 }
 
