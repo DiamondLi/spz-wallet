@@ -1,0 +1,24 @@
+{
+	"master" : {
+		"mainnet" : {
+			"provider" : "https://mainnet.infura.io/JHsRSUXVUlcgCpl29o20"	
+		},
+		"testnet" : {
+			"provider" : "https://ropsten.infura.io/JHsRSUXVUlcgCpl29o20"
+		}
+	},
+	"workers" : {
+		"mainnet" : {
+			"providers" : [
+				"https://mainnet.infura.io/JHsRSUXVUlcgCpl29o20",
+				"xxxx"
+			]
+		},
+		"testnet" : {
+			"providers" : [
+				"https://ropsten.infura.io/JHsRSUXVUlcgCpl29o20",
+				"aaaaa"
+			]
+		}
+	}
+}
