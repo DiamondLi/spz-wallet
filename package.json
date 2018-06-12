@@ -1,0 +1,32 @@
+{
+  "name": "spz-wallet",
+  "version": "1.0.0",
+  "description": "a wallet for transfering digtal coin",
+  "main": "main.js",
+  "scripts": {
+    "test": ". electron"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DiamondLi/spz-wallet.git"
+  },
+  "keywords": [
+    "wallet",
+    "transfer",
+    "digtal",
+    "coin"
+  ],
+  "author": "yang.deng",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DiamondLi/spz-wallet/issues"
+  },
+  "homepage": "https://github.com/DiamondLi/spz-wallet#readme",
+  "dependencies": {
+    "electron": "^2.0.2",
+    "electron-rebuild": "^1.7.3"
+  },
+  "devDependencies": {
+    "electron-rebuild": "^1.7.3"
+  }
+}
