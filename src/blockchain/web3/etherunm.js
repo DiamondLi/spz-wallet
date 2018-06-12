@@ -20,12 +20,23 @@ class Etherumn {
 	}
 
 	/* Promise Object */
-	signTransaction(fromAccount,toAddress,amount) {
+	signTransaction(fromAccount,toAddress,amount,nonce,gasUsed) {
+		let privateKey = fromAccount.privateKey;
+		// 判断前两位
+		let fromAddress = fromAccount.address;
+		let tx = {
+			nonce : nonce,
+			from : fromAddress,
+			to : toAddress,
+			value : amount,
+			gas : gasUsed
+		};
+		return this.web3.eth.accounts.signTransaction(tx);
 
 	}
 
 	/* Promise Object */
-	estimateGas(fromAddress,toAddress) {
+	estimateGas(fromAddress,toAddress,amount) {
 
 	} 
 
@@ -36,14 +47,14 @@ class Etherumn {
 		let latest = await this.web3.eth.getTransactionCount(address,"latest");
 		if(pending === latest) {
 			return pending;
-		} else if(pending > latest){
+		} else if(pending > latest) {
 			return pending + 1;
 		}
 	}
 
 	/** */
 	getPrice() {
-		
+
 	}
 
 
