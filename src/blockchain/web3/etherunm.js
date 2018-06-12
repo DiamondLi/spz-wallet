@@ -5,8 +5,6 @@
 
 'use strict'
 
-
-
 class Etherumn {
 
 	constructor() {}
@@ -17,12 +15,12 @@ class Etherumn {
 	}
 
 	/* promise object */
-	signTransaction(provider,fromAccount,toAddress) {
+	signTransaction(provider,fromAccount,toAddress,amount) {
 
 	}
 
 	/* promise object */
-	estimateGas(provider,fromAccount,toAddress) {
+	estimateGas(provider,fromAddress,toAddress) {
 
 	} 
 

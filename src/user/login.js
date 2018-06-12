@@ -21,9 +21,12 @@ class User {
 		request.post({url:'http://192.168.0.133:8081/login', formData: formData}, function (error, response, body) {  
 		    if (!error && response.statusCode == 200) {
 		    	console.log(body);
+		    	console.log(response.headers);
 		    }
 		});
 	}
+
+	/** */
 
 	logout() {
 		// do nothing now 
