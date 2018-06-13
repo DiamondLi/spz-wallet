@@ -7,6 +7,7 @@
 'use strict'
 
 const request = require('request');
+const url = 'http://192.168.0.192:8081/login';
 
 class User {
 
@@ -16,13 +17,20 @@ class User {
 	login(username,password) {
 		let formData = {
 			username : username,
-			password : password
+			password : password,
 		};
-		request.post({url:'http://192.168.0.133:8081/login', formData: formData}, function (error, response, body) {  
-		    if (!error && response.statusCode == 200) {
-		    	console.log(body);
-		    	console.log(response.headers);
-		    }
+		return new Promise((resolve,reject)=>{
+			request.post({url:url, formData: formData}, (error, response, body) => {  
+			    if(error) {
+			    	reject(new Error(error));
+			    } else {
+			    	let obj = {
+			    		response : response,
+			    		body : body
+			    	};
+			    	resolve(obj);
+			    }
+			});
 		});
 	}
 

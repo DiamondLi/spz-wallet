@@ -1,12 +1,12 @@
 'use strict'
 const log4js = require('../src/common/log.js');
 const logger = log4js.getLogger();
-const User = require('../src/user/login.js');
+const Coin = require('../src/coin/coin.js');
 
 async function test() {
 	try {
-		let user = new User();
-		let obj = await user.login("admin","111111");
+		let coin = new Coin();
+		let obj = await coin.getCoinList();
 		console.log(obj.body);
 	} catch (err) {
 		logger.error(err);
