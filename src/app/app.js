@@ -9,6 +9,7 @@ const electron = require('electron');
 const log4js= require('../common/log.js');
 const RwExcel = require('../excel/excel.js');
 const Provider = require('../common/provider.js');
+const Coin = require('../coin/coin.js');
 const app = electron.app
 const ipcMain = electron.ipcMain
 const dialog  = electron.dialog;
@@ -26,7 +27,7 @@ class App {
 	}
 
 	createLoginWindow() {
-		loginWindow = new browserWindow({width:566,height:400,show:false,resizable:false});
+		loginWindow = new browserWindow({width:566,height:400,show:false,resizable:true});
 		loginWindow.loadURL(loginUrl);
 		loginWindow.once('ready-to-show',()=>{
 			loginWindow.show();
@@ -66,6 +67,16 @@ class App {
 		app.on('window-all-closed',()=> {
 			app.quit();
 		});
+
+		ipcMain.on('login',(event,cookie)=>{
+			this.getCoinList(cookie);
+		});
+	}
+
+	async getCoinList(cookie) {
+		let coin = new Coin();
+		let coinList = await coin.getCoinList(cookie);
+		console.log(coinList.body);
 	}
 
 }

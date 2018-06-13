@@ -28,16 +28,17 @@ class User {
 			    		response : response,
 			    		body : body
 			    	};
+			    	let cookies = response.headers['set-cookie'];
+			    	this.cookie = cookies[1].split(";")[0];
 			    	resolve(obj);
 			    }
 			});
 		});
 	}
 
-	/** */
-
-	logout() {
-		// do nothing now 
+	// 拿到cookie
+	getCookie() {
+		return this.cookie;
 	}
 }
 
