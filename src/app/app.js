@@ -14,9 +14,9 @@ const ipcMain = electron.ipcMain
 const dialog  = electron.dialog;
 const browserWindow = electron.BrowserWindow;
 const logger = log4js.getLogger();//根据需要获取logger
-//let mainWindow;
-//let loginWindow;
-const loginUrl = path.normalize('../view/login/html/login.html');
+let mainWindow;
+let loginWindow;
+const loginUrl = path.normalize(`file://${__dirname}/../view/login/html/login.html`);
 class App {
 
 	constructor() {
@@ -26,14 +26,14 @@ class App {
 	}
 
 	createLoginWindow() {
-		this.loginWindow = new browserWindow({width:566,height:400,show:false,resizable:false});
-		this.loginWindow.loadURL(loginUrl);
-		this.loginWindow.once('ready-to-show',()=>{
-			this.loginWindow.show();
-			this.loginWindow.webContents.send('provider',conf.defaultProvider);
+		loginWindow = new browserWindow({width:566,height:400,show:false,resizable:false});
+		loginWindow.loadURL(loginUrl);
+		loginWindow.once('ready-to-show',()=>{
+			loginWindow.show();
+			//loginWindow.webContents.send('provider',conf.defaultProvider);
 		});
-		this.loginWindow.on('closed',()=> {
-			this.loginWindow = null;				
+		loginWindow.on('closed',()=> {
+			loginWindow = null;				
 		});
 	}
 
@@ -46,11 +46,11 @@ class App {
 
 		const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
 		  	// Someone tried to run a second instance, we should focus our window.
-			if (this.loginWindow) {
-			    if (this.loginWindow.isMinimized()) {
-			    	this.loginWindow.restore();
+			if (loginWindow) {
+			    if (loginWindow.isMinimized()) {
+			    	loginWindow.restore();
 			    }  	
-			    this.loginWindow.focus();
+			    loginWindow.focus();
 			}
 		})
 

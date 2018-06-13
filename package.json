@@ -2,9 +2,9 @@
   "name": "spz-wallet",
   "version": "1.0.0",
   "description": "a wallet for transfering digtal coin",
-  "main": "main.js",
+  "main": "./src/app/main.js",
   "scripts": {
-    "test": ". electron"
+    "start": "electron ."
   },
   "repository": {
     "type": "git",
