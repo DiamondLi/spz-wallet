@@ -11,7 +11,7 @@ class Etherumn {
 
 	constructor(provider) {
 		this.provider = provider;
-		this.web3 = new Web3(new HttpProvider(this.provider));
+		this.web3 = new Web3(new Web3.providers.HttpProvider(this.provider));
 	}
 
 	/* Promise Object */
