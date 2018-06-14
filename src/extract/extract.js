@@ -24,7 +24,6 @@ class Extract {
 			formData['status'] = status;
 		}
 		let data = JSON.parse(JSON.stringify(formData));
-		console.log(data);
 		return new Promise((resolve,reject)=>{
 			request.post({url:url, formData: data}, (error, response, body) => {  
 			    if(error) {

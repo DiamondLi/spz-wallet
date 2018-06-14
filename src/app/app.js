@@ -15,9 +15,13 @@ const ipcMain = electron.ipcMain
 const dialog  = electron.dialog;
 const browserWindow = electron.BrowserWindow;
 const logger = log4js.getLogger();//根据需要获取logger
-let mainWindow;
-let loginWindow;
+const transactionUrl = path.normalize(`file://${__dirname}/../view/transaction/html/transaction.html`);
+const keystoreUrl = path.normalize(`file://${__dirname}/../view/wallet/html/wallet.html`);;
 const loginUrl = path.normalize(`file://${__dirname}/../view/login/html/login.html`);
+let transactionWindow;
+let loginWindow;
+let keystoreWindow;
+
 class App {
 
 	constructor() {
@@ -38,9 +42,22 @@ class App {
 		});
 	}
 
-	test() {
-		logger.info(this.masterProvider);
-		logger.info(this.workerProviders);
+	createtransactionWindow() {
+		transactionWindow = new browserWindow({width:1300,height:815,show:false,resizable:false});
+		transactionWindow.loadURL(transactionUrl);
+		transactionWindow.once('ready-to-show',()=>{
+			transactionWindow.show();
+			loginWindow.close();
+		});
+		transactionWindow.on('closed',()=> {
+			transactionWindow = null;	
+			app.quit();	
+		});
+	}
+
+	createKeystoreWindow() {
+		keystoreWindow = new browserWindow({width:1300,height:400,show:false});
+
 	}
 
 	start() {
@@ -69,7 +86,9 @@ class App {
 		});
 
 		ipcMain.on('login',(event,cookie)=>{
+			this.cookie = cookie;
 			this.getCoinList(cookie);
+
 		});
 	}
 
