@@ -13,7 +13,7 @@ async function login() {
 		let obj = await user.login(username,password);
 		let body = JSON.parse(obj.body);
 		if(body.code !== 0) {
-			alert("111" + body.msg);
+			alert(body.msg);
 			return;
 		}
 		ipcRenderer.send('login',user.getCookie());

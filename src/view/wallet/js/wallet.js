@@ -10,13 +10,15 @@ const dialog = require('electron').remote.dialog;
 const Utils = require('../../../blockchain/web3/utils.js');
 const log4js = require('../../../common/log.js');
 const logger = log4js.getLogger();
-const keystoreFile = "../../../../resource/config/keystroe.json";
+const keystoreFile = "../../../../resource/config/keystore.json";
 
 window.onload = ()=> {
 	// 判断是否存在已有keystroe文件地址
 	try {
-		if(fs.existSync(keystroeFile)) {
-			let data = fs.readFileSync(keystroeFile,'utf-8');
+		logger.info("aaaaa");
+		if(fs.existsSync(keystoreFile)) {
+			let data = fs.readFileSync(keystoreFile,'utf-8');
+			logger.info(data);
 			let keystore = JSON.parse(data).lastKeystore;
 			$('#keystore').val(keystore);
 		}
@@ -35,7 +37,8 @@ function importKeystore() {
 	let filename = filenames[0];
 	let data = { "lastKeystore" : filename };
 	try {
-		fs.writeFileSync(keystroeFile,);
+		console.log(keystoreFile);
+		fs.writeFileSync(keystoreFile,JSON.stringify(data));
 	} catch (err) {
 		logger.error("写入keystore文件失败");
 	}

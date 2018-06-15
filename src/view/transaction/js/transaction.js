@@ -29,12 +29,13 @@ ipcRenderer.on('account',(event,args)=>{
 });
 
 window.onload = ()=> {
-	
+
 }
 
 init();
 
 function init() {
+	logger.info("jilu");
 	ipcRenderer.send('showKeyStore',"show");
 }
 
@@ -76,7 +77,7 @@ async function batchSign(data) {
 
 // 目前只能处理以太坊资产
 async function sign(data,provider) {
-	if(data)
+	//if(data)
 }
 
 // 提交请求

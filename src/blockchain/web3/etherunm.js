@@ -32,12 +32,15 @@ class Etherumn {
 			gas : gasUsed
 		};
 		return this.web3.eth.accounts.signTransaction(tx);
-
 	}
 
 	/* Promise Object */
 	estimateGas(fromAddress,toAddress,amount) {
-
+		let tx = {
+			from : fromAddress,
+			to : tokenAddress
+		}
+		return this.web3.eth.estimateGas(tx);
 	} 
 
 	/** number */
@@ -54,10 +57,8 @@ class Etherumn {
 
 	/** */
 	getPrice() {
-
+		return this.web3.eth.getGasPrice();
 	}
-
-
 }
 
 module.exports = Etherumn;

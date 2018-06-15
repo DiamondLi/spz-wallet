@@ -24,28 +24,72 @@ class Contract {
 		return this.web3.eth.call(tx);
 	}
 
-	signTransaction(fromAccount,toAddress,amount,tokenAddress) {
-
+	getTotalSupply(tokenAddress) {
+		let data = this.encodeTotalSupplyFunction(this.web3);
+		let tx = {
+			to : tokenAddress,
+			data : data
+		};
+		return this.web3.eth.call(tx);
 	}
 
-	estimateGas(fromAddress,toAddress,amount,tokenAddress) {
+	getName(tokenAddress) {
+		let data = this.encodeNameFunction(this.web3);
+		let tx = {
+			to : tokenAddress,
+			data : data
+		};
+		return this.web3.eth.call(tx);
+	}
+
+	getSymbol(tokenAddress) {
+		let data = this.encodeSymbolFunction(this.web3);
+		let tx = {
+			to : tokenAddress,
+			data : data
+		};
+		return this.web3.eth.call(tx);
+	}
+
+	signTransaction(fromAccount,toAddress,amount,tokenAddress,estimateGasUsed) {
+		let privateKey = fromAccount.privateKey;
+		let fromAddress = fromAccount.address;
+		let data_ = this.encodeTransferFunction(this.web3,amount,toAddress);
 		let tx = {
 			from : fromAddress,
-			to : toAddress,
+			to : tokenAddress,
+			gas : estimateGasUsed,
+			data : data_
 		}
+		return this.web3.eth.accounts.signTransaction(tx,privateKey);
+	}
+
+	sendSignedTransaction(signedTx) {
+		return this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+	} 
+
+	estimateGas(fromAddress,toAddress,amount,tokenAddress) {
+		let data = this.encodeTransferFunction(this.web3,amount,toAddress);
+		let tx = {
+			from : fromAddress,
+			to : tokenAddress,
+			data : data
+		}
+		return this.web3.eth.estimateGas(tx);
 	}
 
 	encodeTransferFunction(web3,amount,toAddress) {
 		let object = {
 			name : "transfer",
 			type : "function",
-			inputs : [ {
-					type : 'address',
-					name : '_to'
+			inputs: [
+				{
+					"name": "_to",
+					"type": "address"
 				},
 				{
-					type : 'uint256',
-					name : '_value'
+					"name": "_value",
+					"type": "uint256"
 				}
 			]
 		};
@@ -64,6 +108,36 @@ class Contract {
 			]
 		};
 		let array = [toAddress];
+		return web3.eth.abi.encodeFunctionCall(object,array);
+	}
+
+	encodeTotalSupplyFunction(web3) {
+		let object = {
+			name : "totalSupply",
+			type : "function",
+			inputs : []
+		};
+		let array = [];
+		return web3.eth.abi.encodeFunctionCall(object,array);
+	}
+
+	encodeNameFunction(web3) {
+		let object = {
+			name : "name",
+			type : "function",
+			inputs : []
+		};
+		let array = [];
+		return web3.eth.abi.encodeFunctionCall(object,array);
+	}
+
+	encodeSymbolFunction(web3) {
+		let object = {
+			name : "symbol",
+			type : "function",
+			inputs : []
+		};
+		let array = [];
 		return web3.eth.abi.encodeFunctionCall(object,array);
 	}
 

@@ -10,24 +10,35 @@ const fs = require('fs');
 
 class Utils {
 
-	constructor() {}
+	constructor() {
+		this.web3 = new Web3();
+	}
 
 	/** 解密keystore文件 */
 	importKeyStore(keystore,password) {
-		let web3 = new Web3();
 		let data = fs.readFileSync(keystore,'utf-8');
 		let keystoreData = JSON.parse(data);
-		return web3.eth.accounts.decrypt(keystoreData,password);
+		return this.web3.eth.accounts.decrypt(keystoreData,password);
 	}
 
 	toWei(original) {
-		let web3 = new Web3();
-		return web3.utils.toWei(original+'');
+		return this.web3.utils.toWei(original+'');
 	}
 
 	fromWei(original) {
-		let web3 = new Web3();
-		return web3.utils.fromWei(original+'');
+		return this.web3.utils.fromWei(original+'');
+	}
+
+	privateKeyToAccount(privateKey) {
+		return this.web3.eth.accounts.privateKeyToAccount(privateKey);
+	}
+
+	encodeFunctionSignature(functionName) {
+		return this.web3.eth.abi.encodeFunctionSignature(functionName);
+	}
+	
+	decodeParameters(typesArray, hexString) {
+		return this.web3.eth.abi.decodeParameters(typesArray, hexString);
 	}
 
 }

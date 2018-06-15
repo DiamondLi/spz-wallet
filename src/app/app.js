@@ -56,8 +56,15 @@ class App {
 	}
 
 	createKeystoreWindow() {
-		keystoreWindow = new browserWindow({width:1300,height:400,show:false});
-
+		keystoreWindow = new browserWindow({width:1300,height:400,show:false,
+				parent:transactionWindow,modal: true});
+		keystoreWindow.loadURL(keystoreUrl);
+		keystoreWindow.once('ready-to-show',()=>{
+			keystoreWindow.show();
+		});
+		keystoreWindow.on('closed',()=> {
+			keystoreWindow = null;	
+		});
 	}
 
 	start() {
@@ -88,14 +95,18 @@ class App {
 		ipcMain.on('login',(event,cookie)=>{
 			this.cookie = cookie;
 			this.getCoinList(cookie);
+			this.createtransactionWindow();
+		});
 
+		ipcMain.on('showKeyStore',(event,args)=>{
+			this.createKeystoreWindow();
 		});
 	}
 
 	async getCoinList(cookie) {
 		let coin = new Coin();
-		let coinList = await coin.getCoinList(cookie);
-		console.log(coinList.body);
+		let str = await coin.getCoinList(cookie);
+		this.coinList = JSON.parse(str.body).data;
 	}
 
 }
