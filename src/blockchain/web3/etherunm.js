@@ -38,7 +38,8 @@ class Etherumn {
 	estimateGas(fromAddress,toAddress,amount) {
 		let tx = {
 			from : fromAddress,
-			to : tokenAddress
+			to : toAddress,
+			value : amount
 		}
 		return this.web3.eth.estimateGas(tx);
 	} 

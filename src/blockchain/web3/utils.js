@@ -41,6 +41,10 @@ class Utils {
 		return this.web3.eth.abi.decodeParameters(typesArray, hexString);
 	}
 
+	isAddress(address) {
+		return this.web3.utils.isAddress(address);
+	}
+
 }
 
 module.exports = Utils;

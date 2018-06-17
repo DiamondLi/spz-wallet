@@ -94,12 +94,17 @@ class App {
 
 		ipcMain.on('login',(event,cookie)=>{
 			this.cookie = cookie;
-			this.getCoinList(cookie);
+			//this.getCoinList(cookie);
 			this.createtransactionWindow();
 		});
 
 		ipcMain.on('showKeyStore',(event,args)=>{
 			this.createKeystoreWindow();
+		});
+
+		ipcMain.on('keystore',(event,account)=>{
+			keystoreWindow.close();
+			transactionWindow.webContents.send('account',account);
 		});
 	}
 
