@@ -7,9 +7,14 @@ const url = 'http://192.168.0.192:8081/sys/extractCoin/listExtract';
 
 class Extract {
 
-	constructor() {}
+	constructor(cookie) {
+		this.cookie = cookie;
+	}
 
 	getExtractList(orderIds,fromAddress,toAddress,status) {
+		let j = request.jar();
+		let cookie_ = request.cookie(this.cookie);
+		j.setCookie(cookie_, url);
 		let formData = Object.create(null);
 		if(orderIds !== null && orderIds.length > 0 ) {
 			formData["orderIds"] = orderIds;
@@ -25,7 +30,7 @@ class Extract {
 		}
 		let data = JSON.parse(JSON.stringify(formData));
 		return new Promise((resolve,reject)=>{
-			request.post({url:url, formData: data}, (error, response, body) => {  
+			request.post({url:url,formData:data,jar:j}, (error, response, body) => {  
 			    if(error) {
 			    	reject(new Error(error));
 			    } else {
