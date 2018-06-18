@@ -81,6 +81,11 @@ async function batchSign(data) {
 	for(let i = 0; i < length; i++) {
 		data[i].fromAddress = account.address;
 		let signedTx = sign(data[i],workerProviders[indexOfProvider++ % lenOfWorkerProviders]);
+		let packet = {
+			"data" : data[i],
+			"signedTx" : signedTx,
+			"provider" : provider 
+		}
 	}
 
 }
@@ -112,11 +117,12 @@ async function signForToken(data,provider) {
 	let amount = utils.toWei(data.num);
 	let estimateGas = contract.estimateGas(account.address,data.toAddress,amount,data.tokenAddress);
 	let signedTx = await contract.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
+
 }
 
 // 提交请求
 async function postTransaction(packets) {
-
+	
 }
 
 // 获取提币列表
