@@ -40,7 +40,7 @@ class Extract {
 	}
 
 	getExtractListByOrderIds(orderIds) {
-		return this.getExtractList(orderIds,null,null,null);
+		return this.getExtractList(orderIds,null,null,0);
 	}
 
 	getExtractListByFromAddress(fromAddress) {
