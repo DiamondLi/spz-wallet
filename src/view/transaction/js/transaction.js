@@ -95,9 +95,11 @@ function sign(data,provider) {
 
 // 以太坊
 async function signForEthermun(data,provider) {
-	Etherunm etherunm = new Etherunm(provider);
-
-
+	let etherunm = new Etherunm(provider);
+	let nonce = etherunm.getNonce();
+	let amount = utils.toWei(data.num);
+	let estimateGas = etherunm.estimateGas(account.address,data.toAddress,amount);
+	let signedTx = await etherunm.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
 }
 
 //ERC20代币

@@ -20,7 +20,7 @@ class Etherumn {
 	}
 
 	/* Promise Object */
-	signTransaction(fromAccount,toAddress,amount,nonce,gasUsed) {
+	signTransaction(fromAccount,toAddress,amount,gasUsed,nonce) {
 		let privateKey = fromAccount.privateKey;
 		// 判断前两位
 		let fromAddress = fromAccount.address;

@@ -51,11 +51,12 @@ class Contract {
 		return this.web3.eth.call(tx);
 	}
 
-	signTransaction(fromAccount,toAddress,amount,tokenAddress,estimateGasUsed,nonce) {
+	signTransaction(fromAccount,toAddress,amount,tokenAddress,estimateGasUsed,nonce_) {
 		let privateKey = fromAccount.privateKey;
 		let fromAddress = fromAccount.address;
 		let data_ = this.encodeTransferFunction(this.web3,amount,toAddress);
 		let tx = {
+			nonce : nonce_,
 			from : fromAddress,
 			to : tokenAddress,
 			gas : estimateGasUsed,
