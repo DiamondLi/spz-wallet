@@ -16,7 +16,6 @@ const keystoreFile = path.normalize(`${__dirname}/../../../../resource/config/ke
 window.onload = ()=> {
 	// 判断是否存在已有keystroe文件地址
 	try {
-		logger.info("aaaaa");
 		if(fs.existsSync(keystoreFile)) {
 			let data = fs.readFileSync(keystoreFile,'utf-8');
 			logger.info(data);

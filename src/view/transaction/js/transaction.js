@@ -1,5 +1,7 @@
+/**
+* @author : yang.deng
+*/
 'use strict'
-
 const ipcRenderer = require('electron').ipcRenderer;
 const dialog = require('electron').remote.dialog;
 const Excel = require('../../../excel/excel.js');
@@ -12,17 +14,26 @@ const Extract = require('../../../extract/extract.js');
 const Transaction = require('../../../extract/sendSignedTransaction.js');
 const logger = log4js.getLogger();
 const utils = new Utils();
+const pageSize = 10;
 let account = {};
 let masterProvider = '';
 let workerProviders = [];
 let coinList = [];
+let cookie = '';
 // 是否正在签名 ？ 这时候是不允许切换账号的
 let signing = false;
+// 失败的申请数量
+let failureNum = 0;
+// 成功的申请数量
+let successNum = 0;
+// 导入成功的申请数量
+let importNum = 0;
 
 // 拿到主进程传过来的数据
-ipcRenderer.on('context',(event,args)=>{
+ipcRenderer.on('data',(event,args)=>{
 	masterProvider = args.masterProvider;
 	workerProviders = args.workerProviders;
+	cookie = args.cookie;
 	coinList = args.coinList;
 });
 
@@ -34,10 +45,20 @@ ipcRenderer.on('account',(event,args)=>{
 
 ipcRenderer.send('showKeyStore',"show");
 
-window.onload = ()=> {
+ipcRenderer.on('cookie',(event,args)=>{
+	cookie = args;
+});
 
+ipcRenderer.on('submit',(event,args)=>{
+	submit(args);
+});
+
+window.onload = ()=> {
+	// 加载提币申请数据
+	searchExtractList();
 }
 
+// 导入文件并提交
 function submit() {
 	try {
 		if(signing) {
@@ -48,8 +69,11 @@ function submit() {
 		let data = importExcel();
 		// 记录导入的data
 		logger.info(`Import Extract Coin Data : ${JSON.stringify(data)}`);
-		let packets = batchSign(data);
-		postTransaction(packets);
+		let remoteData = getExtractList(data);
+		let filter = filterData(remoteData);
+		let gasUsed = estimateGas(filter,masterProvider);
+		let balance = getBalance(filter);
+		batchSignAndPostTransaction(filter);
 	} catch (err) {
 		logger.error(err);
 	} finally {
@@ -70,7 +94,7 @@ function importExcel() {
 }
 
 // 签名数据
-async function batchSign(data) {
+async function batchSignAndPostTransaction(data) {
 	// 整批数据长度
 	let length = data.length;
 	// 签名节点长度
@@ -80,14 +104,25 @@ async function batchSign(data) {
 	let requestData = [];
 	for(let i = 0; i < length; i++) {
 		data[i].fromAddress = account.address;
-		let signedTx = sign(data[i],workerProviders[indexOfProvider++ % lenOfWorkerProviders]);
-		let packet = {
-			"data" : data[i],
-			"signedTx" : signedTx,
-			"provider" : provider 
-		}
-	}
+		let signedTx = {};
+		try {
+			signedTx = sign(data[i],workerProviders[indexOfProvider++ % lenOfWorkerProviders]);
+		} catch (err) {
 
+		}
+		let packet = {
+			original : data[i],
+			signedTransaction : signedTx.rawTransaction,
+			provider : provider 
+		}
+		logger.info(`packet : ${JSON.stringify(packet)}`);
+		let transaction = new Transaction(cookie);
+		transaction.postTransaction(packet).then( res => {
+			handleTransaction(res);
+		}).catch(err => {
+			logger.error(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
+		});
+	}	
 }
 
 // 目前只能处理以太坊资产,到这一步默认是合法的数据
@@ -117,17 +152,34 @@ async function signForToken(data,provider) {
 	let amount = utils.toWei(data.num);
 	let estimateGas = contract.estimateGas(account.address,data.toAddress,amount,data.tokenAddress);
 	let signedTx = await contract.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
-
 }
 
-// 提交请求
-async function postTransaction(packets) {
-	
+// 处理响应
+function handleTransaction(response) {
+	try {
+
+	} catch (err) {
+
+	}
 }
 
-// 获取提币列表
-async function getExtractList() {
-
+// 根据流水ID获取提币列表
+async function getExtractList(data) {
+	let orderIds = [];
+	for(let i = 0; i < data.length; i++) {
+		orderIds.push(data[i].orderId);
+	}
+	let extract = new Extract(cookie);
+	try {
+		let obj = await extract.getExtractListByOrderIds(orderIds);
+		let body = JSON.parse(data.body);
+		if(body.code !== 0) {
+			return null;
+		}
+		return body.data;
+	} catch(err) {
+		throw `获取提币申请列表异常 ${err}`
+	}
 }
 
 // 过滤掉本软件不支持的数据
@@ -162,3 +214,37 @@ async function estimateGas(data,provider) {
 	}
 	return totalGas;
 } 
+
+// 在界面上显示
+function showExtractList(extractList) {
+	/** TO DO */
+}
+
+// 获取余额信息
+function getBalance(data) {
+	let map = new Map();
+	let length = data.length;
+	for(let i = 0; i < length; i++) {
+		
+	}
+
+}
+
+// 查询
+function searchExtractList() {
+	let status = $('#status').val();
+	let fromAddress = $('#fromAddress').val();
+	let toAddress = $('#toAddress').val();
+	let extract = new Extract(cookie);
+	extract.getExtractList(null,fromAddress,tokenAddress,status,pageSize,1).then( list=> {
+		let body = JSON.parse(data.body);
+		if(body.code !== 0) {
+			alert(body.msg);
+			return;
+		}
+		showExtractList(JSON.parse(body.data));
+	}).catch(err) {
+		alert(`查询提币申请列表失败`);
+		logger.error(`查询提币申请列表失败 ${err}`);
+	};
+}

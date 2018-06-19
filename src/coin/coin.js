@@ -8,11 +8,13 @@ const url = "http://192.168.0.192:8081/sys/coin/getList";
 // 获取币种信息
 class Coin {
 
-	constructor() {}
+	constructor(cookie) {
+		this.cookie = cookie;
+	}
 
-	getCoinList(cookie) {
+	getCoinList() {
 		let j = request.jar();
-		let cookie_ = request.cookie(cookie);
+		let cookie_ = request.cookie(this.cookie);
 		j.setCookie(cookie_, url);
 		return new Promise((resolve,reject)=>{
 			request({url:url,jar:j},(error,response,body)=>{
@@ -27,6 +29,10 @@ class Coin {
 			    }
 			});
 		});
+	}
+
+	setCookie(cookie) {
+		this.cookie = cookie;
 	}
 }
 
