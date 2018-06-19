@@ -9,6 +9,8 @@ async function login() {
 	try {
 		let username = $('#username').val();
 		let password = $('#password').val();
+		username = 'admin';
+		password = '111111';
 		let user = new User();
 		let obj = await user.login(username,password);
 		let body = JSON.parse(obj.body);

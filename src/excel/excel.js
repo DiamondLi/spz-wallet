@@ -10,7 +10,7 @@ const fs = require('fs');
 var gheaders = ['id','member_id','account_id','create_time',
 	'auth_time','auditor_id','order_id','from_address','to_address',
 	'num','miner_fee','fee','status','coin_id','coin_name','tx_hash',
-	'result','remarks'];
+	'result','remarks','token_address'];
 
 class Excel {
 

@@ -47,6 +47,13 @@ class App {
 		transactionWindow.loadURL(transactionUrl);
 		transactionWindow.once('ready-to-show',()=>{
 			transactionWindow.show();
+			let data = {
+				masterProvider : this.masterProvider,
+				workerProviders : this.workerProviders,
+				cookie : this.cookie,
+				coinList : this.coinList
+			};
+			transactionWindow.webContents.send('data',data);
 			loginWindow.close();
 		});
 		transactionWindow.on('closed',()=> {
@@ -94,7 +101,7 @@ class App {
 
 		ipcMain.on('login',(event,cookie)=>{
 			this.cookie = cookie;
-			//this.getCoinList(cookie);
+			this.getCoinList();
 			this.createtransactionWindow();
 		});
 
@@ -108,10 +115,15 @@ class App {
 		});
 	}
 
-	async getCoinList(cookie) {
-		let coin = new Coin();
-		let str = await coin.getCoinList(cookie);
-		this.coinList = JSON.parse(str.body).data;
+	async getCoinList() {
+		try {
+			let coin = new Coin(this.cookie);
+			let obj = await coin.getCoinList();
+			let body = JSON.parse(obj.body);
+			this.coinList = body.data;
+		} catch (err) {
+			logger.error(err);
+		}
 	}
 
 }

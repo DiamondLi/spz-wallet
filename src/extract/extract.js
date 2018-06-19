@@ -19,19 +19,19 @@ class Extract {
 		if(orderIds !== null && orderIds.length > 0 ) {
 			formData["orderIds"] = orderIds;
 		}
-		if(fromAddress !== null && fromAddress !== '') {
+		if(typeof fromAddress !== 'undefined' && fromAddress !== null && fromAddress !== '') {
 			formData["fromAddress"] = fromAddress;
 		}
-		if(toAddress !== null && toAddress !== '') {
+		if(typeof toAddress !== 'undefined' && toAddress !== null && toAddress !== '') {
 			formData['toAddress'] = toAddress;
 		}
-		if(status !== null) {
+		if(typeof status !== 'undefined' && status !== null) {
 			formData['status'] = status;
 		}
-		if(pageIndex !== null) {
+		if(typeof pageIndex !== 'undefined' && pageIndex !== null) {
 			formData['pageIndex'] = pageIndex;
 		}
-		if(pageSize !== null) {
+		if(typeof pageSize !== 'undefined' && pageSize !== null) {
 			formData['pageSize'] = pageSize;
 		}
 		let data = JSON.parse(JSON.stringify(formData));
@@ -66,7 +66,7 @@ class Extract {
 	}
 
 	getExtractListByStatus(status,pageSize,pageIndex) {
-		return this.getExtractList(null,null,null,status,,pageSize,pageIndex);
+		return this.getExtractList(null,null,null,status,pageSize,pageIndex);
 	}
 
 	getExtractListAll(pageSize,pageIndex) {
