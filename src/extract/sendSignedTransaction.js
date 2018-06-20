@@ -9,7 +9,6 @@ class Transaction {
 
 	constructor(cookie) {
 		this.cookie = cookie;
-		this.packet = packet;
 	}
 
 	postTransaction(packet) {
@@ -33,3 +32,5 @@ class Transaction {
 		this.cookie = cookie;
 	}
 }
+
+module.exports = Transaction;

@@ -4,7 +4,7 @@
 'use strict'
 
 const request = require('request');
-const url = "http://192.168.0.192:8081/sys/coin/getList";
+const url = "http://192.168.0.192:8081/sys/coin/getLists";
 // 获取币种信息
 class Coin {
 

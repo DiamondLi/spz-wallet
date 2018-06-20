@@ -30,13 +30,6 @@ let successNum = 0;
 // 导入成功的申请数量
 let importNum = 0;
 
-// 监听account消息
-ipcRenderer.on('account',(event,args)=>{
-	account = args;
-	logger.info(`import address : ${account.address}`);
-	loadAccountBalance();
-});
-
 ipcRenderer.send('showKeyStore',"show");
 
 ipcRenderer.on('cookie',(event,args)=>{
@@ -49,9 +42,16 @@ ipcRenderer.on('data',(event,args)=>{
 	workerProviders = args.workerProviders;
 	cookie = args.cookie;
 	coinList = args.coinList;
-	console.log(args);
+	console.log(`args is ${JSON.stringify(args)}`);
 	// 加载提币申请数据
 	searchExtractList();
+	// 监听account消息
+	ipcRenderer.on('account',(event,args)=>{
+		account = args;
+		logger.info(`import address : ${account.address}`);
+		console.log(`coinList is ${JSON.stringify(coinList)}`);
+		loadAccountBalance();
+	});
 });
 
 // 导入文件并提交
@@ -66,7 +66,7 @@ async function submit() {
 		// 记录导入的data
 		logger.info(`Import Extract Coin Data : ${JSON.stringify(data)}`);
 		let remoteData = await getExtractList(data);
-		console.log(remoteData);
+		console.log(`remoteData is ${JSON.stringify(remoteData)}`);
 		let filter = filterData(remoteData);
 		for(let i=0;i<filter.length;i++) {
 			filter[i].fromAddress = account.address;
@@ -108,6 +108,7 @@ function importExcel() {
 async function batchSignAndPostTransaction(data) {
 	// 整批数据长度
 	let length = data.length;
+	console.log(`data is ${JSON.stringify(data)}`);
 	// 签名节点长度
 	let lenOfWorkerProviders = workerProviders.length;
 	// 签名节点索引
@@ -115,33 +116,35 @@ async function batchSignAndPostTransaction(data) {
 	let requestData = [];
 	for(let i = 0; i < length; i++) {
 		data[i].fromAddress = account.address;
+		console.log(`address is ${account.address}`);
 		let signedTx = {};
+		let provider = workerProviders[indexOfProvider++ % lenOfWorkerProviders];
 		try {
-			signedTx = sign(data[i],workerProviders[indexOfProvider++ % lenOfWorkerProviders]);
+			signedTx = sign(data[i],provider);
 		} catch (err) {
 			console.log(`签名数据失败 ${err}`);
 			logger.error(`签名数据失败 ${err}`);
 		}
 		let packet = {
-			original : data[i],
+			data : data[i],
 			signedTransaction : signedTx.rawTransaction,
 			provider : provider 
 		}
 		logger.info(`packet : ${JSON.stringify(packet)}`);
-		let transaction = new Transaction(cookie);
-		transaction.postTransaction(packet).then( res => {
-			handleTransaction(res);
-		}).catch(err => {
-			console.log(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
-			logger.error(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
-		});
+		// let transaction = new Transaction(cookie);
+		// transaction.postTransaction(packet).then( res => {
+		// 	handleTransaction(res);
+		// }).catch(err => {
+		// 	console.log(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
+		// 	logger.error(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
+		// });
 	}	
 }
 
 // 目前只能处理以太坊资产,到这一步默认是合法的数据
 async function sign(data,provider) {
 	// 判断是不是以太坊本身
-	if(data[i].coinName === 'ETH') {
+	if(data.coinName === 'ETH') {
 		return await signForEthermun(data,provider);
 	} else {
 		return await signForToken(data,provider);
@@ -150,21 +153,31 @@ async function sign(data,provider) {
 
 // 以太坊
 async function signForEthermun(data,provider) {
-	let etherunm = new Etherunm(provider);
-	let nonce = await etherunm.getNonce();
-	let amount = utils.toWei(data.num);
-	let estimateGas = await etherunm.estimateGas(account.address,data.toAddress,amount);
-	return await etherunm.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
+	try {
+		let etherunm = new Etherunm(provider);
+		let nonce = await etherunm.getNonce();
+		let amount = utils.toWei(data.num);
+		let estimateGas = await etherunm.estimateGas(account.address,data.toAddress,amount);
+		return await etherunm.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
+	} catch (err) {
+		throw err;
+	}
+	
 }
 
 //ERC20代币
 async function signForToken(data,provider) {
-	let etherunm = new Etherunm(provider);
-	let contract = new Contract(provider);
-	let nonce = await etherunm.getNonce();
-	let amount = utils.toWei(data.num);
-	let estimateGas = await contract.estimateGas(account.address,data.toAddress,amount,data.tokenAddress);
-	return await contract.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
+	try {
+		let etherunm = new Etherunm(provider);
+		let contract = new Contract(provider);
+		let nonce = await etherunm.getNonce(account.address);
+		let amount = utils.toWei(data.num);
+		let estimateGas = await contract.estimateGas(account.address,data.toAddress,amount,data.tokenAddress);
+		return await contract.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
+	} catch (err) {
+		throw err;
+	}
+	
 }
 
 // 处理响应
@@ -188,10 +201,10 @@ async function getExtractList(data) {
 	try {
 		let obj = await extract.getExtractListByOrderIds(orderIds);
 		console.log(obj);
-		let body = JSON.parse(data.body);
+		let body = JSON.parse(obj.body);
 		console.log(body);
-		if(body.code !== 0) {
-			return null;
+		if(body.code !== 200) {
+		 	return null;
 		}
 		return body.data;
 	} catch(err) {
@@ -277,15 +290,13 @@ function searchExtractList() {
 
 function loadAccountBalance() {
 	let address = account.address;
-	let accountBalance = [];
-	let balance;
+	let etherunm = new Etherunm(masterProvider);
+	etherunm.getBalance(address).then(balance =>{
+		// 显示coin name 和 balance
+	});
+	console.log(coinList);
 	for(let i = 0; i < coinList.length; i++) {
-		if(coinList[i].name === 'ETH') {
-			let etherunm = new Etherunm(masterProvider);
-			etherunm.getBalance(address).then(balance =>{
-				// 显示coin name 和 balance
-			});
-		} else if(coinList[i].name !== 'ETH' && utils.isAddress(coinList[i].tokenAddress)){
+		if(coinList[i].name !== 'ETH' && utils.isAddress(coinList[i].tokenAddress)){
 			let extract = new Extract(masterProvider);
 			extract.getBalance(address,coinList[i].tokenAddress).then(balance => {
 				// 显示coin name 和 balance

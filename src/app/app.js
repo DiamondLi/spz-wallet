@@ -102,7 +102,6 @@ class App {
 		ipcMain.on('login',(event,cookie)=>{
 			this.cookie = cookie;
 			this.getCoinList();
-			this.createtransactionWindow();
 		});
 
 		ipcMain.on('showKeyStore',(event,args)=>{
@@ -120,7 +119,10 @@ class App {
 			let coin = new Coin(this.cookie);
 			let obj = await coin.getCoinList();
 			let body = JSON.parse(obj.body);
+			console.log(body.data);
 			this.coinList = body.data;
+			console.log(`coinList1 is ${JSON.stringify(this.coinList)}`);
+			this.createtransactionWindow();
 		} catch (err) {
 			logger.error(err);
 		}
