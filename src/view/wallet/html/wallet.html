@@ -1,20 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="UTF-8">
 	<title></title>
 	<script type="text/javascript" src = "../js/wallet.js"></script>
+	<style>
+		*{
+			margin:0;
+			padding:0;
+			box-sizing:border-box;
+		}
+		input:-webkit-autofill{
+			background-color:#FFFFFF !important;
+			-webkit-box-shadow: 0 0 0px 1000px white inset !important;
+		}
+		.content form{
+			padding: 1rem;
+		}
+		.content form input{
+			border: 1px solid #e6e6e6;
+			margin-bottom: 1rem;
+			width: 200px;
+			height: 30px;
+			line-height: 30px;
+		}
+		.content form button.my_push{
+			cursor: pointer;
+			background: #00A3FF;
+			border: 1px solid #00A3FF;
+			border-radius: 3px;
+			color: #ffffff;
+			width: 70px;
+			height: 30px;
+			line-height: 30px;
+		}
+		.content form button.submit{
+			cursor: pointer;
+			background: #00A3FF;
+			border: 1px solid #00A3FF;
+			border-radius: 3px;
+			color: #ffffff;
+			width: 70px;
+			height: 30px;
+			line-height: 30px;
+		}
+	</style>
 </head>
 <body>
 
-<div>
-	<input id="keystore" />
-	<button onclick = "importKeystore()">导入</button> 
-</div>
-<div>
-	<input id="password" type="password" />密码
-</div>
-<div>
-	<button onclick="submit()">确认</button>
+<div class="content">
+	<form action="">
+		<div>
+			<input id="keystore" />
+			<button onclick = "importKeystore()" class="my_push">导入</button>
+		</div>
+		<div>
+			<input id="password" type="password" />   密码
+		</div>
+		<div>
+			<button onclick="submit()" class="submit">确认</button>
+		</div>
+	</form>
 </div>
 </body>
 </html>
