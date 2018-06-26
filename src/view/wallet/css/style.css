@@ -1,0 +1,39 @@
+*{
+	margin:0;
+	padding:0;
+	box-sizing:border-box;
+}
+input:-webkit-autofill{
+	background-color:#FFFFFF !important;
+	-webkit-box-shadow: 0 0 0px 1000px white inset !important;
+}
+.content {
+	padding: 1rem;
+}
+.content input{
+	border: 1px solid #e6e6e6;
+	margin-bottom: 1rem;
+	width: 200px;
+	height: 30px;
+	line-height: 30px;
+}
+.content button.my_push{
+	cursor: pointer;
+	background: #00A3FF;
+	border: 1px solid #00A3FF;
+	border-radius: 3px;
+	color: #ffffff;
+	width: 70px;
+	height: 30px;
+	line-height: 30px;
+}
+.content button.submit{
+	cursor: pointer;
+	background: #00A3FF;
+	border: 1px solid #00A3FF;
+	border-radius: 3px;
+	color: #ffffff;
+	width: 70px;
+	height: 30px;
+	line-height: 30px;
+}

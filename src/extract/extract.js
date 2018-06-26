@@ -11,7 +11,7 @@ class Extract {
 		this.cookie = cookie;
 	}
 
-	getExtractList(orderIds,fromAddress,toAddress,status,pageSize,pageIndex) {
+	getExtractList(orderIds,fromAddress,toAddress,status,pageSize,pageNo) {
 		let j = request.jar();
 		let cookie_ = request.cookie(this.cookie);
 		j.setCookie(cookie_, url);
@@ -28,13 +28,14 @@ class Extract {
 		if(typeof status !== 'undefined' && status !== null) {
 			formData['status'] = status;
 		}
-		if(typeof pageIndex !== 'undefined' && pageIndex !== null) {
-			formData['pageIndex'] = pageIndex;
+		if(typeof pageNo !== 'undefined' && pageNo !== null) {
+			formData['pageNo'] = pageNo;
 		}
 		if(typeof pageSize !== 'undefined' && pageSize !== null) {
 			formData['pageSize'] = pageSize;
 		}
 		let data = JSON.parse(JSON.stringify(formData));
+		console.log(`请求订单数据为 ${JSON.stringify(formData)}`);
 		return new Promise((resolve,reject)=>{
 			request.post({url:url,formData:data,jar:j}, (error, response, body) => {  
 			    if(error) {

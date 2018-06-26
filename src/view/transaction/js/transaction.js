@@ -12,7 +12,9 @@ const Utils = require('../../../blockchain/web3/utils.js');
 const Contract = require('../../../blockchain/web3/contract.js');
 const Etherunm = require('../../../blockchain/web3/etherunm.js');
 const Extract = require('../../../extract/extract.js');
-const Transaction = require('../../../extract/sendSignedTransaction.js');
+const Transaction = require('../../../extract/transaction.js');
+const MD5Utils = require('../../../common/md5Utils.js');
+const md5Utils = new MD5Utils();
 const logger = log4js.getLogger();
 const utils = new Utils();
 const pageSize = 10;
@@ -29,6 +31,7 @@ let failureNum = 0;
 let successNum = 0;
 // 导入成功的申请数量
 let importNum = 0;
+let salt="123456789";
 
 ipcRenderer.send('showKeyStore',"show");
 
@@ -42,14 +45,12 @@ ipcRenderer.on('data',(event,args)=>{
 	workerProviders = args.workerProviders;
 	cookie = args.cookie;
 	coinList = args.coinList;
-	console.log(`args is ${JSON.stringify(args)}`);
 	// 加载提币申请数据
 	searchExtractList();
 	// 监听account消息
 	ipcRenderer.on('account',(event,args)=>{
 		account = args;
 		logger.info(`import address : ${account.address}`);
-		console.log(`coinList is ${JSON.stringify(coinList)}`);
 		loadAccountBalance();
 	});
 });
@@ -58,6 +59,7 @@ ipcRenderer.on('data',(event,args)=>{
 async function submit() {
 	try {
 		if(signing) {
+			alert("正在签名中...");
 			return;
 		}
 		signing = true;
@@ -67,7 +69,8 @@ async function submit() {
 		logger.info(`Import Extract Coin Data : ${JSON.stringify(data)}`);
 		let remoteData = await getExtractList(data);
 		console.log(`remoteData is ${JSON.stringify(remoteData)}`);
-		let filter = filterData(remoteData);
+		console.log(`remoteData length is ${remoteData.rows.length}`);
+		let filter = filterData(remoteData.rows);
 		for(let i=0;i<filter.length;i++) {
 			filter[i].fromAddress = account.address;
 		}
@@ -120,24 +123,24 @@ async function batchSignAndPostTransaction(data) {
 		let signedTx = {};
 		let provider = workerProviders[indexOfProvider++ % lenOfWorkerProviders];
 		try {
-			signedTx = sign(data[i],provider);
+			signedTx = await sign(data[i],provider);
 		} catch (err) {
 			console.log(`签名数据失败 ${err}`);
 			logger.error(`签名数据失败 ${err}`);
 		}
 		let packet = {
-			data : data[i],
+			orderId : data[i].orderId,
 			signedTransaction : signedTx.rawTransaction,
-			provider : provider 
+			provider : provider,
+			encryption : md5Utils.encrypt(signedTx.rawTransaction) 
 		}
 		logger.info(`packet : ${JSON.stringify(packet)}`);
-		// let transaction = new Transaction(cookie);
-		// transaction.postTransaction(packet).then( res => {
-		// 	handleTransaction(res);
-		// }).catch(err => {
-		// 	console.log(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
-		// 	logger.error(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
-		// });
+		let transaction = new Transaction();
+		transaction.sendTransaction(packet).then( response => {
+			handleTransaction(response);
+		}).catch(err => {
+			logger.error(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
+		});
 	}	
 }
 
@@ -162,7 +165,6 @@ async function signForEthermun(data,provider) {
 	} catch (err) {
 		throw err;
 	}
-	
 }
 
 //ERC20代币
@@ -173,7 +175,7 @@ async function signForToken(data,provider) {
 		let nonce = await etherunm.getNonce(account.address);
 		let amount = utils.toWei(data.num);
 		let estimateGas = await contract.estimateGas(account.address,data.toAddress,amount,data.tokenAddress);
-		return await contract.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
+		return await contract.signTransaction(account,data.toAddress,amount,data.tokenAddress,estimateGas,nonce);
 	} catch (err) {
 		throw err;
 	}
@@ -183,7 +185,7 @@ async function signForToken(data,provider) {
 // 处理响应
 function handleTransaction(response) {
 	try {
-
+		logger.info(response);
 	} catch (err) {
 
 	}
@@ -191,7 +193,6 @@ function handleTransaction(response) {
 
 // 根据流水ID获取提币列表
 async function getExtractList(data) {
-	console.log(data);
 	let orderIds = [];
 	for(let i = 0; i < data.length; i++) {
 		orderIds.push(data[i].order_id+'');
@@ -202,7 +203,7 @@ async function getExtractList(data) {
 		let obj = await extract.getExtractListByOrderIds(orderIds);
 		console.log(obj);
 		let body = JSON.parse(obj.body);
-		console.log(body);
+		console.log(`remotedata1111 is ${obj.body}`);
 		if(body.code !== 200) {
 		 	return null;
 		}
@@ -248,6 +249,26 @@ async function estimateGas(data,provider) {
 // 在界面上显示提币申请
 function showExtractList(extractList) {
 	/** TO DO */
+	$('#extractCoinList').html('');
+	if(extractList === null || extractList.length === 0) {
+		return;
+	}
+	let length = extractList.length;
+	for(let i = 0;i < length; i++) {
+		extractList[i].fromAddress = (extractList[i].fromAddress === null ? '' : extractList[i].fromAddress);
+		extractList[i].remarks = (extractList[i].remarks === null ? '' : extractList[i].remarks);
+		let htmlText = '<tr>' +
+			 '<td>' + extractList[i].coinName + '</td>' +
+			 '<td>' + extractList[i].orderId + '</td>' +
+			 '<td>' + extractList[i].num+ '</td>' +
+			 '<td>' + extractList[i].fromAddress + '</td>' +
+			 '<td>' + extractList[i].toAddress + '</td>' +
+			 '<td>' + extractList[i].status + '</td>' +
+			 '<td>' + extractList[i].txHash + '</td>' +
+			 '<td>' + extractList[i].minerFee + '</td>' +
+			 '<td>' + extractList[i].remarks + '</td>'+'</tr>';
+		$('#extractCoinList').append(htmlText);
+	}
 }
 
 // 获取余额信息
@@ -272,16 +293,16 @@ function searchExtractList() {
 	let status = $('#status').val();
 	let fromAddress = $('#fromAddress').val();
 	let toAddress = $('#toAddress').val();
-	console.log(`status is ${status}`);
 	let extract = new Extract(cookie);
-	extract.getExtractList(null,fromAddress,toAddress,status,pageSize,1).then( list=> {
+	extract.getExtractList(null,fromAddress,toAddress,status,pageSize,1).then(list=>{
 		let body = JSON.parse(list.body);
-		console.log(body);
-		if(body.code !== 0) {
-			alert(body.msg);
+		logger.info(body);
+		if(body.code !== 200) {
+			alert("msg is " + body.code);
 			return;
 		}
-		showExtractList(JSON.parse(body.data));
+		logger.info(body.data.rows);
+		showExtractList(body.data.rows);
 	}).catch(err => {
 		alert(`查询提币申请列表失败`);
 		logger.error(`查询提币申请列表失败 ${err}`);
@@ -293,14 +314,64 @@ function loadAccountBalance() {
 	let etherunm = new Etherunm(masterProvider);
 	etherunm.getBalance(address).then(balance =>{
 		// 显示coin name 和 balance
+		showEthAccount(address,utils.fromWei(balance));
 	});
-	console.log(coinList);
+	$('#token_list').html('');
 	for(let i = 0; i < coinList.length; i++) {
 		if(coinList[i].name !== 'ETH' && utils.isAddress(coinList[i].tokenAddress)){
-			let extract = new Extract(masterProvider);
-			extract.getBalance(address,coinList[i].tokenAddress).then(balance => {
+			let contract = new Contract(masterProvider);
+			contract.getBalance(address,coinList[i].tokenAddress).then( balance => {
 				// 显示coin name 和 balance
+				showTokenAccount(coinList[i].name,utils.fromWei(balance));
 			});
 		} 
 	}
 }
+
+function showEthAccount(address,balance) {
+	$('#eth_address').html('');
+	$('#eth_balance').html('');
+	let ethAddressHtml = '<span>' + address + '</span>';
+	$('#eth_address').append(ethAddressHtml);
+	let ethBalanceHtml = '<span>' + balance + '</span>';
+	$('#eth_balance').append(ethBalanceHtml);
+}
+
+function showTokenAccount(name,balance) {
+	let tokenHtml = '<tr>' + '<td>' + '<span>' 
+		+ name + '</span>' + '</td>' + '<td>' 
+		+ balance + '</td>' + '</tr>';
+	$('#token_list').append(tokenHtml);
+}
+
+function exeData(num, type) {
+    loadData(num);
+    loadpage();
+}
+
+function loadpage() {
+    var myPageCount = parseInt($("#PageCount").val());
+    var myPageSize = parseInt($("#PageSize").val());
+    var countindex = myPageCount % myPageSize > 0 ? (myPageCount / myPageSize) + 1 : (myPageCount / myPageSize);
+    $("#countindex").val(countindex);
+    $.jqPaginator('#pagination', {
+        totalPages: parseInt($("#countindex").val()),
+        visiblePages: parseInt($("#visiblePages").val()),
+        currentPage: 1,
+        first: '<li class="first"><a href="javascript:;">首页</a></li>',
+        prev: '<li class="prev"><a href="javascript:;"><i class="arrow arrow2"></i>上一页</a></li>',
+        next: '<li class="next"><a href="javascript:;">下一页<i class="arrow arrow3"></i></a></li>',
+        last: '<li class="last"><a href="javascript:;">末页</a></li>',
+        page: '<li class="page"><a href="javascript:;">{{page}}</a></li>',
+        onPageChange: function (num, type) {
+            if (type == "change") {
+                exeData(num, type);
+            }
+        }
+    });
+}
+
+$(function () {
+    loadData(1);
+    loadpage();
+});

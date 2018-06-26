@@ -10,14 +10,12 @@
 	"workers" : {
 		"mainnet" : {
 			"providers" : [
-				"https://mainnet.infura.io/JHsRSUXVUlcgCpl29o20",
-				"xxxx"
+				"https://mainnet.infura.io/JHsRSUXVUlcgCpl29o20"
 			]
 		},
 		"testnet" : {
 			"providers" : [
-				"https://ropsten.infura.io/JHsRSUXVUlcgCpl29o20",
-				"aaaaa"
+				"https://ropsten.infura.io/JHsRSUXVUlcgCpl29o20"
 			]
 		}
 	}

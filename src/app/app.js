@@ -26,8 +26,8 @@ class App {
 
 	constructor() {
 		this.provider = new Provider();
-		this.masterProvider = this.provider.getMasterProvider("mainnet");
-		this.workerProviders = this.provider.getWorkerProviders("mainnet");
+		this.masterProvider = this.provider.getMasterProvider("testnet");
+		this.workerProviders = this.provider.getWorkerProviders("testnet");
 	}
 
 	createLoginWindow() {
@@ -43,7 +43,7 @@ class App {
 	}
 
 	createtransactionWindow() {
-		transactionWindow = new browserWindow({width:1300,height:815,show:false,resizable:false});
+		transactionWindow = new browserWindow({width:1920,height:1080,show:false,resizable:false});
 		transactionWindow.loadURL(transactionUrl);
 		transactionWindow.once('ready-to-show',()=>{
 			transactionWindow.show();
@@ -117,11 +117,10 @@ class App {
 	async getCoinList() {
 		try {
 			let coin = new Coin(this.cookie);
+			console.log(this.cookie);
 			let obj = await coin.getCoinList();
 			let body = JSON.parse(obj.body);
-			console.log(body.data);
 			this.coinList = body.data;
-			console.log(`coinList1 is ${JSON.stringify(this.coinList)}`);
 			this.createtransactionWindow();
 		} catch (err) {
 			logger.error(err);

@@ -28,8 +28,12 @@ class User {
 			    		response : response,
 			    		body : body
 			    	};
-			    	let cookies = response.headers['set-cookie'];
-			    	this.cookie = cookies[1].split(";")[0];
+			    	try {
+			    		let cookies = response.headers['set-cookie'];
+			    		this.cookie = cookies[1].split(";")[0];
+			    	} catch (err) {
+			    		reject(new Error(err));
+			    	}
 			    	resolve(obj);
 			    }
 			});
