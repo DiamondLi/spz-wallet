@@ -10,12 +10,22 @@
 	"workers" : {
 		"mainnet" : {
 			"providers" : [
-				"https://mainnet.infura.io/JHsRSUXVUlcgCpl29o20"
+				"https://mainnet.infura.io/JHsRSUXVUlcgCpl29o20",
+				"https://mainnet.infura.io/5AlWKedpEUySB0padXAd",
+				"https://mainnet.infura.io/2TLCjB0JsPYsGS6SYrIu",
+				"https://mainnet.infura.io/ZVIF2uHPXuHJ7FURlvcW",
+				"https://mainnet.infura.io/0W1B3cafIkgxeEYExaaO",
+				"https://mainnet.infura.io/zFKeUYL5GtegdOfAx3re"
 			]
 		},
 		"testnet" : {
 			"providers" : [
-				"https://ropsten.infura.io/JHsRSUXVUlcgCpl29o20"
+				"https://ropsten.infura.io/JHsRSUXVUlcgCpl29o20",
+				"https://ropsten.infura.io/5AlWKedpEUySB0padXAd",
+				"https://ropsten.infura.io/2TLCjB0JsPYsGS6SYrIu",
+				"https://ropsten.infura.io/ZVIF2uHPXuHJ7FURlvcW",
+				"https://ropsten.infura.io/0W1B3cafIkgxeEYExaaO",
+				"https://ropsten.infura.io/zFKeUYL5GtegdOfAx3re"
 			]
 		}
 	}

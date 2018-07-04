@@ -7,10 +7,10 @@
 const xlsx = require('node-xlsx');
 const fs = require('fs');
 
-var gheaders = ['id','member_id','account_id','create_time',
+var gheaders = ['id','version','member_id','account_id','create_time',
 	'auth_time','auditor_id','order_id','from_address','to_address',
 	'num','miner_fee','fee','status','coin_id','coin_name','tx_hash',
-	'result','remarks','token_address'];
+	'result','token_address','remarks'];
 
 class Excel {
 

@@ -53,7 +53,7 @@ class Extract {
 
 	// 导入处理数据
 	getExtractListByOrderIds(orderIds) {
-		return this.getExtractList(orderIds,null,null,0,null,null);
+		return this.getExtractList(orderIds,null,null,1,null,null);
 	}
 
 	// 以下全为视图

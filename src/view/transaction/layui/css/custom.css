@@ -1,0 +1,103 @@
+/* 全局 */
+html,body{overflow-x: hidden;height: 100%;}
+html{background-color: #efefef;}
+i{font-style: normal;}
+#container{position:relative;width:100%;min-height:100%;box-sizing: border-box;background-color: #fff;}
+#content{background-color: white;position:relative;}
+.custom-fl{float: left;}
+.custom-fr{float: right;}
+
+/* 头部 */
+.fly-header{position: fixed; left: 0; top: 0; z-index: 10000; width: 100%; height: 60px; border-right: 1px solid #404553; border-radius: 0;}
+.fly-logo{position: absolute; left: 30px; top: 7px;}
+.fly-nav{margin-left: 230px;}
+.fly-nav a i{position: absolute; left: 25px; top: 0; padding-right: 10px; font-size: 26px;}
+.fly-nav a .icon-shouye, .nav a .icon-shezhi{top: 2px;}
+
+.fly-nav-user{position: absolute; top: 0; right: 30px;}
+.fly-nav-user .iconfont{position: relative;}
+.fly-nav-avatar img{width: 36px; height: 36px; margin-left: 10px; border-radius: 100%;}
+.fly-nav-avatar  .icon-renzheng{font-size: 16px; top: 1px;}
+.fly-nav-avatar .fly-badge-vip{position: relative; margin-left: 10px;}
+.fly-nav-user .layui-nav-child a i{position: relative; top: 2px; margin-right: 10px; font-size: 26px;}
+
+.fly-nav-msg{position:absolute; top: 50%; left: -25px; height: 20px; line-height: 20px; margin-top: -10px; padding:0 6px; background-color: #FF7200; color: #fff; border-radius: 2px;}
+.fly-nav-msg:hover{color:#fff;}
+
+.fly-header .layui-nav{padding: 0; background: none;}
+.fly-header .fly-nav a{padding: 0 25px 0 30px;}
+.fly-header .fly-nav-user li a{padding: 0 20px;}
+.fly-header .fly-nav-user li .fly-nav-avatar{padding-right: 0;}
+.fly-header .fly-nav-user a.iconfont{color: #A9B7B7;}
+.fly-header>.layui-nav-item a{color: rgba(255,255,255,0.5);}
+.fly-header .layui-this a{color: #fff;}
+.fly-header .layui-nav .layui-this:after,
+.fly-header .layui-nav .layui-nav-bar,
+.fly-header .fly-nav-user .layui-nav-more{display: none !important;}
+.fly-header .fly-nav-user .layui-nav-child{
+    left: auto;
+    right: 0;
+    width: 180px;
+    min-width: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,.12);
+    border: 1px solid #2a2e46;
+    background-color: #2a2e46;
+    z-index: 100;
+    border-radius: 8px;
+}
+.fly-header .fly-nav-user .layui-nav-child dd{border-bottom: 1px solid #373d63;}
+.fly-header .fly-nav-user .layui-nav-child a{color:#fff;}
+.fly-header .fly-nav-user .layui-nav-child a:hover{background-color: #131522;}
+.fly-header .fly-nav-user .layui-nav-child a:visited{background-color: #131522;}
+
+.fly-header .fly-nav-user .layui-nav-child img{width: 15px;padding-right: 20px;}
+
+.fly-header .fly-nav .layui-nav-child{
+    width: 180px;
+    min-width: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,.12);
+    border: 1px solid #2a2e46;
+    background-color: #2a2e46;
+    z-index: 100;
+    border-radius: 8px;
+}
+.fly-header .fly-nav .layui-nav-child dd{border-bottom: 1px solid #373d63;}
+.fly-header .fly-nav .layui-nav-child a{color:#fff;}
+.fly-header .fly-nav .layui-nav-child a:hover{background-color: #131522;}
+.fly-header .fly-nav .layui-nav-child a:visited{background-color: #131522;}
+.fly-header .fly-nav .layui-nav-child img{width: 15px;padding-right: 20px;}
+
+
+/* 栅格 */
+.grid{padding: 10px; line-height: 50px; text-align: center; color: #fff;}
+.grid-bg1{background-color: #63BA79;}
+.grid-bg2{background-color: #49A761;}
+.grid-bg3{background-color: #38814A;}
+
+/* 标题 */
+.title{height: 50px;line-height: 50px;}
+.title h3{padding-left:20px;}
+
+/* 背景色 */
+.banner-bg-color{background-color: #131522;}
+.bg-select-color{background-color: #2a2e46;}
+.title-bg-color{background-color: #304b84;}
+.button-bg-color{background-color: #1884ff;}
+.button-bg-color2{background-color: #5485ed;}
+.bg-color-white{background-color: white;}
+.bg-color-ef{background-color: #efefef;}
+.bg-color-black{background-color: black;}
+
+
+/* 字体色 */
+.font-color-white{color: white !important;}
+.font-color-black{color: black !important;}
+.font-color-666{color: #666 !important;}
+.font-color-green{color: green !important;}
+.a-font-color{color: #1884ff;}
+
+/*修改layui样式*/
+.layui-table-page{border-top-width:0;}
+.layui-table-view .layui-table[lay-skin="line"] {border-right-width: 0px;}
+
+.div_border{border:1px solid #e6e6e6;border-top:0px;}

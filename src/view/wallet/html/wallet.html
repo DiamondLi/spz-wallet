@@ -1,23 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<meta charset="UTF-8">
 	<title></title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="../../transaction/layui/css/layui.css"/>
+	<link rel="stylesheet" href="../../transaction/layui/css/custom.css"/>
 	<script type="text/javascript" src = "../js/wallet.js"></script>
-	<link rel="stylesheet" href="../css/style.css"/>
 </head>
 <body>
-
-<div class="content">
-	<div>
-		<input id="keystore" />
-		<button onclick = "importKeystore()" class="my_push">导入</button>
-	</div>
-	<div>
-		<input id="password" type="password" id="password"/>   密码
-	</div>
-	<div>
-		<button onclick = "submit()" class="submit">确认</button>
+<div id="container">
+	<!-- 内容 -->
+	<div class="layui-container">
+		<div style="margin:0 20%;text-align: center;padding-top:40px;">
+			<h2>导入钱包地址</h2>
+			<div class="layui-form-item" style="margin:0;padding-top:20px;">
+				<div class="layui-input-block custom-fl" style="margin-left:0; width: 70%;">
+					<input id="keystore" autocomplete="off" class="layui-input" type="text" style="border-right:0;">
+				</div>
+				<div class="layui-input-block custom-fr" style="margin-left:0;width: 30%;">
+					<button class="layui-btn" onclick = "importKeystore()" style="width: 100%;background-color: #1884ff;border-top-left-radius: unset;border-bottom-left-radius: unset;">导入</button>
+				</div>
+			</div>
+			<div class="layui-form-item" style="margin:0;padding-top:20px;">
+				<div class="layui-input-block" style="margin-left:0;">
+					<input id="password" name="password" placeholder="请输入密码" lay-verify="required" autocomplete="off" class="layui-input" type="password" maxlength="20">
+				</div>
+			</div>
+			<div class="layui-form-item" style="margin:0;padding-top:20px;">
+				<div class="layui-input-block" style="margin-left:0;">
+					<button class="layui-btn" onclick = "submit()" style="width: 100%;background-color: #1884ff;">确认</button>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 </body>

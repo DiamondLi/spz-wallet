@@ -31,7 +31,7 @@ class App {
 	}
 
 	createLoginWindow() {
-		loginWindow = new browserWindow({width:566,height:400,show:false,resizable:true});
+		loginWindow = new browserWindow({width:566,height:400,show:false,resizable:false});
 		loginWindow.loadURL(loginUrl);
 		loginWindow.once('ready-to-show',()=>{
 			loginWindow.show();
@@ -43,7 +43,7 @@ class App {
 	}
 
 	createtransactionWindow() {
-		transactionWindow = new browserWindow({width:1920,height:1080,show:false,resizable:false});
+		transactionWindow = new browserWindow({width:1350,height:900,show:false,resizable:true});
 		transactionWindow.loadURL(transactionUrl);
 		transactionWindow.once('ready-to-show',()=>{
 			transactionWindow.show();
@@ -58,12 +58,11 @@ class App {
 		});
 		transactionWindow.on('closed',()=> {
 			transactionWindow = null;	
-			app.quit();	
 		});
 	}
 
 	createKeystoreWindow() {
-		keystoreWindow = new browserWindow({width:1300,height:400,show:false,
+		keystoreWindow = new browserWindow({width:566,height:400,show:false,
 				parent:transactionWindow,modal: true});
 		keystoreWindow.loadURL(keystoreUrl);
 		keystoreWindow.once('ready-to-show',()=>{
@@ -101,7 +100,7 @@ class App {
 
 		ipcMain.on('login',(event,cookie)=>{
 			this.cookie = cookie;
-			this.getCoinList();
+			this.createtransactionWindow();
 		});
 
 		ipcMain.on('showKeyStore',(event,args)=>{
@@ -113,20 +112,6 @@ class App {
 			transactionWindow.webContents.send('account',account);
 		});
 	}
-
-	async getCoinList() {
-		try {
-			let coin = new Coin(this.cookie);
-			console.log(this.cookie);
-			let obj = await coin.getCoinList();
-			let body = JSON.parse(obj.body);
-			this.coinList = body.data;
-			this.createtransactionWindow();
-		} catch (err) {
-			logger.error(err);
-		}
-	}
-
 }
 
 module.exports = App;

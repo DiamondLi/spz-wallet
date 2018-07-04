@@ -3,19 +3,34 @@
 <head>
 	<title></title>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="../css/style.css"/>
+	<link rel="stylesheet" href="../../transaction/layui/css/layui.css"/>
+	<link rel="stylesheet" href="../../transaction/layui/css/custom.css"/>
 	<script type="text/javascript" src = "../js/login.js"></script>
 </head>
 <body>
-<div class="content">
-	<div class="main">
-		<form action="">
-			<h2>用户登录</h2>
-			<p>欢迎登录数字货币交易所后台管理系统</p>
-			<input type="text" class="name" id="username"/>
-			<input type="password" class="pwd" id="password"/>
-			<input type="button" onclick="login()" value="登录" class="login"/>
-		</form>
+<div id="container">
+	<!-- 内容 -->
+	<div class="layui-container">
+		<div style="margin:0 20%;text-align: center;padding-top:40px;">
+			<div>
+				<img src="../../transaction/img/touxiang.png" class="circle" alt="" style="display:block;margin: 0 auto;">
+			</div>
+			<div class="layui-form-item" style="margin:0;padding-top:20px;">
+				<div class="layui-input-block" style="margin-left:0;">
+					<input id="username" name="name" lay-verify="required" autocomplete="off" class="layui-input" type="text">
+				</div>
+			</div>
+			<div class="layui-form-item" style="margin:0;padding-top:20px;">
+				<div class="layui-input-block" style="margin-left:0;">
+					<input id="password" name="password" lay-verify="required" autocomplete="off" class="layui-input" type="password" maxlength="20">
+				</div>
+			</div>
+			<div class="layui-form-item" style="margin:0;padding-top:20px;">
+				<div class="layui-input-block" style="margin-left:0;">
+					<button class="layui-btn" onclick="login()" style="width: 100%;background-color: #1884ff;">登录</button>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 </body>

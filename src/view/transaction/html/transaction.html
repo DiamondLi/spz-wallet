@@ -1,126 +1,192 @@
 <!DOCTYPE html>
 <html>
-<head lang="en">
-  <meta charset="UTF-8">
-  <title></title>
-  <link rel="stylesheet" href="../css/style.css"/>
-  <link rel="stylesheet" href="../css/bootstrap.min.css"/>
-  <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
-  <script type="text/javascript" src="../js/jqPaginator.min.js"></script>
-  <script type="text/javascript" src="../js/transaction.js"></script>
+<head>
+    <meta charset="utf-8">
+    <title>数字货币交易所</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="数字货币交易所">
+    <meta name="description" content="数字货币交易所">
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <link rel="stylesheet" href="../layui/css/custom.css">
 </head>
-<body>
-  <div class="content">
-    <div class="nav">
-      <img src="../img/logo.png" alt="" class="logo"/>
-      <a href="" class="setting">
-        <img src="../img/shezhi.png" alt=""/>
-        设置
-      </a>
-    </div>
-    <div class="page_left">
-      <!--头像-->
-      <div class="my_logo">
-        <img src="../img/touxiang.png" alt=""/>
-        <div class="my_name">
-          <h3>以太坊地址</h3>
-          <p><span id="eth_address"></span></p>
-        </div>
-      </div>
-      <div style="clear: both"></div>
-      <div class="my_money">
-        <span>以太坊余额：</span>
-        <p><span id="eth_balance"></span></p>
-      </div>
-      <!--表格-->
-      <div class="left_table">
-        <table>
-          <tbody>
-            <tr>
-              <th>币种</th>
-              <th style="text-align: center">余额</th>
-            </tr>
-          </tbody>
-          <tbody id="token_list">
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="page_right">
-      <div class="page_main">
-        <div class="con_top">
-          <div id="form">
-            <div class="send">
-              <span>转出地址</span>
-              <input type="text"/>
-            </div>
-            <div class="receive">
-              <span>转入地址</span>
-              <input type="text"/>
-            </div>
-            <div class="drop-down">
-              <span>状态</span>
-              <select>
-                <option value="0">待处理</option>
-                <option value="1">处理中</option>
-                <option value="2">成功</option>
-                <option value="3">失败</option>
-              </select>
-            </div>
-            <div class="succeed">
-              <input type="button" value="查询"/>
-            </div>
-            <div class="lead_push">
-              <input type="button" value="导入文件提币" onclick="submit()" />
-            </div>
-            <div class="cut_btn">
-              <input type="button" value="切换账户"/>
-            </div>
-          </div>
-        </div>
-        <!--表格-->
-        <div class="main_table">
-          <table>
-            <tbody>
-              <tr style="height: 40px;line-height: 40px">
-                <th>币种</th>
-                <th>流水号</th>
-                <th>数量</th>
-                <th>转出地址</th>
-                <th>转入地址</th>
-                <th>状态</th>
-                <th>交易哈希</th>
-                <th>矿工费</th>
-                <th>备注</th>
-              </tr>
-            </tbody>
-            <tbody id="extractCoinList">
-            </tbody>
-          </table>
-        </div>
-        <!--分页-->
-        <form id="form1" runat="server">
-          <div style="width: 100%;text-align: center;margin-top: 2rem">
-            <ul class="pagination" id="pagination">
-            </ul>
-            <input type="hidden" id="PageCount" runat="server" />
-            <input type="hidden" id="PageSize" runat="server" value="30" />
-            <input type="hidden" id="countindex" runat="server"/>
-            <!--设置最多显示的页码数 可以手动设置 默认为3-->
-            <input type="hidden" id="visiblePages" runat="server" value="3" />
-          </div>
-        </form>
-
-        <div class="page_btm">
-          <p>状态状态状态状态</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <script type="text/javascript">
-    function loadData(num) {
-      $("#PageCount").val("89");
+<style>
+    .layui-form.layui-border-box.layui-table-view{border:none;}
+    .layui-table-fixed-r {
+        box-shadow: none;
+        border-left: none;
     }
-  </script>
+
+    .layui-input-inline{
+        margin-left: 10px;
+    }
+    .layui-input{
+        width:130px;
+        height: 32px !important;
+        border-radius: 6px;
+    }
+
+    .layui-table-page .layui-laypage input {
+        height: 26px !important;
+    }
+
+    .td_clear_border{
+        border:0 !important;
+    }
+    .layui-form-select dl dd.layui-this {
+        background-color: #5485ed;
+    }
+    .layui-card-body {padding: 0;}
+    .layui-table-view {margin: 0;}
+    .layui-table-page{text-align: center;}
+    a{cursor: pointer;}
+    p{
+        word-wrap: break-word;
+        word-break: break-all;
+        overflow: hidden;
+    }
+</style>
+<body>
+<div id="container">
+
+    <div>
+        <!-- 导航栏 -->
+        <div class="fly-header header banner-bg-color">
+            <a class="fly-logo" href="#">
+                <img src="../img/logo.png">
+            </a>
+            <ul class="layui-nav fly-nav-user">
+                <li id="logout" class="layui-nav-item">
+                    <a href="#" target="_self">
+                        <img src="../img/shezhi.png">
+                        <span style="padding-left:1px;">设置</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 内容 -->
+    <div id="content">
+        <div class="layui-row" style="padding-top:50px;">
+
+            <!-- 左边栏 -->
+            <div class="layui-col-md3">
+                <div class="layui-row grid">
+
+                    <!-- 币种 -->
+                    <div class="layui-col-md12" style="padding-top:10px;">
+                        <div class="layui-card" style="box-shadow:none;">
+                            <div class="layui-card-header" style="border:1px solid #e6e6e6;height:270px;padding:20px;text-align: left;">
+                                <div class="custom-fl">
+                                    <img src="../img/touxiang.png" style="width: 60px;"/>
+                                </div>
+                                <div class="custom-fl" style="padding: 5px 0 0 20px;line-height: 25px;">
+                                    <p>用户名</p>
+                                    <p>admin</p>
+                                </div>
+                                <div style="clear: both;padding-top:30px;line-height: 30px;">
+                                    <p>以太坊地址：</p>
+                                    <div class="layui-col-md12">
+                                        <a id="eth_address" class="a-font-color"></a>
+                                    </div>
+                                </div>
+                                <div style="clear: both;padding-top:30px;line-height: 30px;">
+                                    <p>以太坊余额：</p>
+                                    <p id="eth_balance"></p>
+                                </div>
+                            </div>
+                            <div class="div_border">
+                                <div class="layui-card-body" style="height:450px;color: black;margin-right: -1px;">
+                                    <table class="layui-table" lay-skin="line" style="margin:0;border-left:0;border-top:0;border-right:0;right:-1px;">
+                                        <colgroup>
+                                            <col width="50%">
+                                            <col width="50%">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th style="text-align: center;">币种</th>
+                                            <th style="text-align: center;">余额</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="token_list">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 右边栏 -->
+            <div class="layui-col-md9">
+                <div class="layui-row grid" style="padding-left: 0;text-align: left;">
+
+                    <!-- 列表 -->
+                    <div class="layui-col-md12" style="padding-top:10px;">
+                        <div class="layui-card" style="box-shadow:none;">
+                            <div style="border:1px solid #e6e6e6;">
+                                <div class="layui-card-body" style="height:730px;color: black;position: relative;">
+                                    <div class="layui-card-body" style="color: black;">
+                                        <blockquote style="margin:30px 0 20px 0;padding-left:20px;">
+                                            <div class="layui-inline">
+                                                <div>
+                                                    <div class="layui-inline">
+                                                        <div class="layui-input-inline">
+                                                            <input name="fromAddress" class="layui-input" placeholder="转出地址" type="text" style="height: 32px;">
+                                                        </div>
+                                                    </div>
+                                                    <div class="layui-inline">
+                                                        <div class="layui-input-inline">
+                                                            <input name="toAddress" class="layui-input" placeholder="转入地址" type="text" style="height: 32px;">
+                                                        </div>
+                                                    </div>
+                                                    <div class="layui-form layui-inline layui-input-inline">
+                                                        <select id="statusId" lay-search >
+                                                            <option value="">选择状态</option>
+                                                            <option value="1">待处理</option>
+                                                            <option value="2">处理中</option>
+                                                            <option value="3">成功</option>
+                                                            <option value="4">失败</option>
+                                                            <option value="5">未知</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="layui-input-inline">
+                                                        <a id="search" class="layui-btn layui-btn-sm" style="background-color: #5485ed;width: 80px;border-radius: 6px;">查询</a>
+                                                    </div>
+                                                    <div class="layui-input-inline">
+                                                        <a id="importFile" class="layui-btn layui-btn-sm" style="background-color: #5485ed;width: 100px;border-radius: 6px;">导入文件提币</a>
+                                                    </div>
+                                                    <div class="layui-input-inline">
+                                                        <a id="switchAccount" class="layui-btn layui-btn-sm" style="background-color: #5485ed;width: 80px;border-radius: 6px;">切换账户</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </blockquote>
+                                        <div class="layui-card-body" style="height:400px;color: black;">
+                                            <div style="border-bottom:1px solid #e6e6e6;">
+                                                <table id="table" lay-filter="table" ></table>
+                                            </div>
+                                            <div id="page" style="text-align: center;"></div>
+                                        </div>
+                                    </div>
+                                    <div style="width: 100%;height: 40px;line-height: 40px;border-top:1px solid #e6e6e6;position: absolute;bottom: 0;">
+                                        <p style="padding-left: 10px; color:#cccccc;" >状态：已上线 <span id="importDataBar"></span> <span id="requestSuccDataBar"></span> <span id="requestFailDataBar"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
 </body>
 </html>
+<script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="../js/transaction.js"></script>
