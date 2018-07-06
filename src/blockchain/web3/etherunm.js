@@ -47,13 +47,7 @@ class Etherumn {
 	/** number */
 	async getNonce(address) {
 		/** 如果txpool中没有pending状态的transaction，则pending和latest的效果一致*/
-		let pending = await this.web3.eth.getTransactionCount(address,"pending");
-		let latest = await this.web3.eth.getTransactionCount(address,"latest");
-		if(pending === latest) {
-			return pending;
-		} else if(pending > latest) {
-			return pending + 1;
-		}
+		return await this.web3.eth.getTransactionCount(address,"pending");
 	}
 
 	/** */

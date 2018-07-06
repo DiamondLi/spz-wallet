@@ -1,8 +1,3 @@
-/**
-*  @version: v1.0.0
-*  @author : yang.deng
-*/
-
 'use strict'
 
 const fs = require('fs');

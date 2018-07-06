@@ -17,7 +17,7 @@ const md5Utils = new MD5Utils();
 const transaction = new Transaction();
 const logger = log4js.getLogger();
 const utils = new Utils();
-const pageSize = 10;
+const pageSize = 15;
 let account = {};
 let masterProvider = '';
 let workerProviders = [];
@@ -25,11 +25,9 @@ let coinList = [];
 let cookie = '';
 // 是否正在签名 ？ 这时候是不允许切换账号的
 let signing = false;
-
-// 导入成功的申请数量
-let baseAddressUrl = "https://ropsten.etherscan.io/address/";
-let baseTxHashUrl = "https://ropsten.etherscan.io/tx/";
-let salt="123456789";
+let baseAddressUrl = ''
+let baseTxHashUrl = "";
+let salt="";
 
 window.onload = ()=>{
     var script=document.createElement("script");
@@ -49,6 +47,9 @@ ipcRenderer.on('data',(event,args)=>{
 	masterProvider = args.masterProvider;
 	workerProviders = args.workerProviders;
 	cookie = args.cookie;
+	baseAddressUrl = args.addressUrl;
+	baseTxHashUrl = args.txUrl;
+	salt = args.salt;
 	// coinList = args.coinList;
 	let coin = new Coin(cookie);
 	coin.getCoinList().then(obj => {
@@ -63,7 +64,6 @@ ipcRenderer.on('data',(event,args)=>{
 	// 监听account消息
 	ipcRenderer.on('account',(event,args)=>{
 		account = args;
-		logger.info(`import address : ${account.address}`);
 		loadAccountBalance();
 	});
 });
@@ -104,6 +104,16 @@ async function batchSignAndPostTransaction(data) {
 	for(let i = 0; i < length; i++) {
 		data[i].fromAddress = account.address;
 		try {
+			// 查询pending状态 nonce
+			if(i !== 0) {
+				while(true) {
+					let newNonce = await etherunm.getNonce(account.address);
+					if(newNonce === nonce + 1) {
+						nonce = newNonce;
+						break;
+					}
+				}
+			}
 			let gasPrice = await etherunm.getPrice();
 			gasPrice = utils.toWei(gasPrice,"gwei");
 			let signedTx = await sign(data[i],provider,nonce,gasPrice);
@@ -122,20 +132,18 @@ async function batchSignAndPostTransaction(data) {
 			if(res.code !== 200) {
 				failureNum++;
 				showFailReqBar(failureNum);
-				logger.info(`提交签名数据失败 : ${res.msg}`);
+				logger.error(`提交签名数据失败 : ${res.msg}`);
 				if(res.code === 500) {
 					ipcRenderer.send('relogin','relogin');	
 				}
 			} else {
 				successNum++;
 				showSuccReqBar(successNum);
-				nonce++;
 			}
 		} catch (err) {
 			logger.error(`签名数据失败 ${err}`);
 		}
 	}
-	signing = false;
 }
 
 // 目前只能处理以太坊资产,到这一步默认是合法的数据
@@ -285,7 +293,6 @@ function searchExtractList() {
 			alert("msg is " + body.code);
 			return;
 		}
-		//logger.info(body.data.rows);
         layuiInit(body.data.rows, body.data.total);
 		//showExtractList(body.data.rows);
 	}).catch(err => {
@@ -409,11 +416,9 @@ function layuiInit(rows,count) {
             var fromAddress = $("input[name='fromAddress']").val();
             var toAddress = $("input[name='toAddress']").val();
             var status = $('#statusId option:selected').val();
-            logger.info(`status is ${status}`);
             let extract = new Extract(cookie);
             extract.getExtractList(null,fromAddress,toAddress,status,pageSize,1).then(list=>{
                 let body = JSON.parse(list.body);
-                logger.info(body);
                 if(body.code !== 200) {
                     layer.msg(body.msg);
                     if(body.code === 500) {
@@ -466,7 +471,6 @@ function layuiInit(rows,count) {
                         let extract = new Extract(cookie);
                         extract.getExtractList(null,fromAddress,toAddress,status,obj.limit, obj.curr).then(list=>{
                             let body = JSON.parse(list.body);
-                            logger.info(body);
                             if(body.code !== 200) {
                                 layer.msg("msg is " + body.code);
                                 return;
@@ -519,7 +523,11 @@ function layuiInit(rows,count) {
 						btn: ['知道了']
 					});
 					showImportStatusBar(filter.length);
-					batchSignAndPostTransaction(filter);	
+					batchSignAndPostTransaction(filter);
+					signing = false;	
+				},(index)=>{
+					layer.close(index);
+					signing = false;
 				});
 			}).catch(err => {
 				layer.alert(`签名失败 : ${err}`);

@@ -9,6 +9,7 @@ const electron = require('electron');
 const log4js= require('../common/log.js');
 const RwExcel = require('../excel/excel.js');
 const Provider = require('../common/provider.js');
+const BaseConfig = require('../common/loadConfig.js');
 const Coin = require('../coin/coin.js');
 const app = electron.app
 const ipcMain = electron.ipcMain
@@ -25,9 +26,14 @@ let keystoreWindow;
 class App {
 
 	constructor() {
+		this.baseConfig = new BaseConfig();
+		this.addressUrl = this.baseConfig.getAddressUrl();
+		this.txUrl = this.baseConfig.getTxUrl();
+		this.salt = this.baseConfig.getSalt();
+		this.env = this.baseConfig.getEnv();
 		this.provider = new Provider();
-		this.masterProvider = this.provider.getMasterProvider("testnet");
-		this.workerProviders = this.provider.getWorkerProviders("testnet");
+		this.masterProvider = this.provider.getMasterProvider(this.env);
+		this.workerProviders = this.provider.getWorkerProviders(this.env);
 	}
 
 	createLoginWindow() {
@@ -50,7 +56,10 @@ class App {
 				masterProvider : this.masterProvider,
 				workerProviders : this.workerProviders,
 				cookie : this.cookie,
-				coinList : this.coinList
+				coinList : this.coinList,
+				addressUrl : this.addressUrl,
+				txUrl : this.txUrl,
+				salt : this.salt
 			};
 			transactionWindow.webContents.send('data',data);
 			loginWindow.close();
