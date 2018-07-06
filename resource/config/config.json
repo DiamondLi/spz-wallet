@@ -1,0 +1,6 @@
+{
+	"env":"testnet",
+	"addressUrl" : "https://ropsten.etherscan.io/address/",
+	"txUrl" : "https://ropsten.etherscan.io/tx",
+	"salt" : "123456789"
+}

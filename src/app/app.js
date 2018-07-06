@@ -35,7 +35,6 @@ class App {
 		loginWindow.loadURL(loginUrl);
 		loginWindow.once('ready-to-show',()=>{
 			loginWindow.show();
-			//loginWindow.webContents.send('provider',conf.defaultProvider);
 		});
 		loginWindow.on('closed',()=> {
 			loginWindow = null;				
@@ -63,7 +62,7 @@ class App {
 
 	createKeystoreWindow() {
 		keystoreWindow = new browserWindow({width:566,height:400,show:false,
-				parent:transactionWindow,modal: true});
+				parent:transactionWindow,modal: true,frame : false});
 		keystoreWindow.loadURL(keystoreUrl);
 		keystoreWindow.once('ready-to-show',()=>{
 			keystoreWindow.show();
@@ -110,6 +109,13 @@ class App {
 		ipcMain.on('keystore',(event,account)=>{
 			keystoreWindow.close();
 			transactionWindow.webContents.send('account',account);
+		});
+
+		ipcMain.on('relogin',(event,args)=>{
+			// 开启login窗口
+			this.createLoginWindow();
+			transactionWindow.close();
+			// 关闭transaction窗口
 		});
 	}
 }

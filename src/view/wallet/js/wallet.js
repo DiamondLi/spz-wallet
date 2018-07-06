@@ -52,7 +52,6 @@ function submit() {
 		let utils = new Utils();
 		let account = utils.importKeyStore(keystore,password);
 		// 将account发送给主进程
-		console.log("1111111111111111111111111111111");
 		ipcRenderer.send('keystore',account);
 	} catch (err) {
 		alert("导入文件或者密码错误");

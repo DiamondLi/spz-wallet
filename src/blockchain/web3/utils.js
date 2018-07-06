@@ -1,8 +1,3 @@
-/**
-*  @version: v1.0.0
-*  @author : yang.deng
-*/
-
 'use strict'
 
 const Web3 = require('web3');
@@ -21,8 +16,12 @@ class Utils {
 		return this.web3.eth.accounts.decrypt(keystoreData,password);
 	}
 
-	toWei(original) {
-		return this.web3.utils.toWei(original+'');
+	toWei(original,unit) {
+		if(typeof unit !== 'undefined' && unit !== null && unit !== '') {
+			return this.web3.utils.toWei(original+'',unit);
+		} else {
+			return this.web3.utils.toWei(original+'');
+		}
 	}
 
 	fromWei(original) {

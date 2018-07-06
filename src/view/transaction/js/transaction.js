@@ -1,6 +1,3 @@
-/**
-* @author : yang.deng
-*/
 'use strict'
 const ipcRenderer = require('electron').ipcRenderer;
 const dialog = require('electron').remote.dialog;
@@ -17,6 +14,7 @@ const Extract = require('../../../extract/extract.js');
 const Transaction = require('../../../extract/transaction.js');
 const MD5Utils = require('../../../common/md5Utils.js');
 const md5Utils = new MD5Utils();
+const transaction = new Transaction();
 const logger = log4js.getLogger();
 const utils = new Utils();
 const pageSize = 10;
@@ -27,10 +25,7 @@ let coinList = [];
 let cookie = '';
 // 是否正在签名 ？ 这时候是不允许切换账号的
 let signing = false;
-// 失败的申请数量
-let failureNum = 0;
-// 成功的申请数量
-let successNum = 0;
+
 // 导入成功的申请数量
 let baseAddressUrl = "https://ropsten.etherscan.io/address/";
 let baseTxHashUrl = "https://ropsten.etherscan.io/tx/";
@@ -87,99 +82,96 @@ function importExcel() {
 
 // 签名数据
 async function batchSignAndPostTransaction(data) {
-
+	// 失败的申请数量
+	let failureNum = 0;
+	// 成功的申请数量
+	let successNum = 0;
 	// 整批数据长度
 	let length = data.length;
 	// 签名节点长度
 	let lenOfWorkerProviders = workerProviders.length;
 	// 签名节点索引
 	let indexOfProvider = 0;
-	let requestData = [];
 	let provider = workerProviders[indexOfProvider++ % lenOfWorkerProviders];
 	let etherunm = new Etherunm(provider);
-	let nonce = await etherunm.getNonce(account.address);
+	let nonce;
+	try {
+		nonce = await etherunm.getNonce(account.address); 
+	} catch (err) {
+		logger.error(`在远程节点上获取nonce值失败`);
+		return;
+	}
 	for(let i = 0; i < length; i++) {
 		data[i].fromAddress = account.address;
-		let signedTx = {};
 		try {
-			signedTx = await sign(data[i],provider,nonce);
+			let gasPrice = await etherunm.getPrice();
+			gasPrice = utils.toWei(gasPrice,"gwei");
+			let signedTx = await sign(data[i],provider,nonce,gasPrice);
+			let packet = {
+				fromAddress : data[i].fromAddress,
+				orderId : data[i].orderId,
+				signedTransaction : signedTx.rawTransaction,
+				provider : provider,
+				encryption : md5Utils.encrypt(signedTx.rawTransaction+salt),
+				nonce : nonce,
+				gasPrice : gasPrice
+			};
+			let response = await transaction.sendTransaction(packet);
+			let res = JSON.parse(response.body);
+			// 请求失败
+			if(res.code !== 200) {
+				failureNum++;
+				showFailReqBar(failureNum);
+				logger.info(`提交签名数据失败 : ${res.msg}`);
+				if(res.code === 500) {
+					ipcRenderer.send('relogin','relogin');	
+				}
+			} else {
+				successNum++;
+				showSuccReqBar(successNum);
+				nonce++;
+			}
 		} catch (err) {
 			logger.error(`签名数据失败 ${err}`);
-			continue;
 		}
-		nonce++;
-		let packet = {
-			fromAddress : data[i].fromAddress,
-			orderId : data[i].orderId,
-			signedTransaction : signedTx.rawTransaction,
-			provider : provider,
-			encryption : md5Utils.encrypt(signedTx.rawTransaction+salt) 
-		}
-		let transaction = new Transaction();
-		transaction.sendTransaction(packet).then( response => {
-			handleTransaction(response.body,successNum,failureNum);
-		}).catch(err => {
-			failureNum++;
-			showFailReqBar(failureNum);
-			logger.error(`提交提币请求异常! 信息：${JSON.stringify(packet)} 错误：${err}`);
-		});
 	}
 	signing = false;
 }
 
 // 目前只能处理以太坊资产,到这一步默认是合法的数据
-async function sign(data,provider,nonce) {
+async function sign(data,provider,nonce,gasPrice) {
 	// 判断是不是以太坊本身
 	if(data.coinName === 'ETH') {
-		return await signForEthermun(data,provider,nonce);
+		return await signForEthermun(data,provider,nonce,gasPrice);
 	} else {
-		return await signForToken(data,provider,nonce);
+		return await signForToken(data,provider,nonce,gasPrice);
 	}
 }
 
 // 以太坊
-async function signForEthermun(data,provider,nonce) {
+async function signForEthermun(data,provider,nonce,gasPrice) {
 	try {
 		let etherunm = new Etherunm(provider);
-		logger.info("nonce : " + nonce + "provider : " + provider);
 		let amount = utils.toWei(data.num);
-		let estimateGas = await etherunm.estimateGas(account.address,data.toAddress,amount);
-		return await etherunm.signTransaction(account,data.toAddress,amount,estimateGas,nonce);
+		//let estimateGas = await etherunm.estimateGas(account.address,data.toAddress,amount);
+		let estimateGas = 90000;
+		return await etherunm.signTransaction(account,data.toAddress,amount,estimateGas,nonce,gasPrice);
 	} catch (err) {
 		throw err;
 	}
 }
 
 //ERC20代币
-async function signForToken(data,provider,nonce) {
+async function signForToken(data,provider,nonce,gasPrice) {
 	try {
 		let etherunm = new Etherunm(provider);
 		let contract = new Contract(provider);
-		logger.info("nonce : " + nonce + "provider : " + provider);
 		let amount = utils.toWei(data.num);
-		let estimateGas = await contract.estimateGas(account.address,data.toAddress,amount,data.tokenAddress);
-		return await contract.signTransaction(account,data.toAddress,amount,data.tokenAddress,estimateGas,nonce);
+		let estimateGas = 90000;
+		//let estimateGas = await contract.estimateGas(account.address,data.toAddress,amount,data.tokenAddress);
+		return await contract.signTransaction(account,data.toAddress,amount,data.tokenAddress,estimateGas,nonce,gasPrice);
 	} catch (err) {
 		throw err;
-	}
-}
-
-// 处理响应
-function handleTransaction(response,successNum,failureNum) {
-	try {
-		logger.info(response);
-		// 成功发送请求多少条信息记录到状态栏
-		if(response.code !== 200) {
-			failureNum++;
-			showFailReqBar(failureNum);
-		} else {
-			successNum++;
-			showSuccReqBar(successNum);
-		}
-	} catch (err) {
-		failureNum++;
-		showFailReqBar(failureNum);
-		// 发送请求错误多少条记录到状态栏
 	}
 }
 
@@ -189,11 +181,9 @@ async function getExtractList(data) {
 	for(let i = 0; i < data.length; i++) {
 		orderIds.push(data[i].order_id+'');
 	}
-	console.log(orderIds);
 	let extract = new Extract(cookie);
 	try {
 		let obj = await extract.getExtractListByOrderIds(orderIds);
-		console.log(obj);
 		let body = JSON.parse(obj.body);
 		if(body.code !== 200) {
 		 	return null;
@@ -288,8 +278,10 @@ function searchExtractList() {
 	let extract = new Extract(cookie);
 	extract.getExtractList(null,fromAddress,toAddress,status,pageSize,1).then(list=>{
 		let body = JSON.parse(list.body);
-		logger.info(body);
 		if(body.code !== 200) {
+			if(body.code === 500) {
+				ipcRenderer.send('relogin','relogin');
+			}
 			alert("msg is " + body.code);
 			return;
 		}
@@ -423,7 +415,10 @@ function layuiInit(rows,count) {
                 let body = JSON.parse(list.body);
                 logger.info(body);
                 if(body.code !== 200) {
-                    layer.msg("msg is " + body.code);
+                    layer.msg(body.msg);
+                    if(body.code === 500) {
+                		ipcRenderer.send('relogin','relogin');
+                	}
                     return;
                 }
                 tableIns.reload({
@@ -518,16 +513,13 @@ function layuiInit(rows,count) {
 					filter[i].fromAddress = account.address;
 				}
 				layer.confirm("是否确认提币?",{btn:['是','否']},(index)=>{
-					logger.info(index);
-					if(index === 1){
-						layer.close(index);
-						layer.msg(`从excel文件导入数据${data.length}条,有效数据为${filter.length}条,开始提币...`,{
-							time : 6000,
-							btn: ['知道了']
-						});
-						showImportStatusBar(filter.length);
-						batchSignAndPostTransaction(filter);	
-					}
+					layer.close(index);
+					layer.msg(`从excel文件导入数据${data.length}条,有效数据为${filter.length}条,开始提币...`,{
+						time : 6000,
+						btn: ['知道了']
+					});
+					showImportStatusBar(filter.length);
+					batchSignAndPostTransaction(filter);	
 				});
 			}).catch(err => {
 				layer.alert(`签名失败 : ${err}`);
