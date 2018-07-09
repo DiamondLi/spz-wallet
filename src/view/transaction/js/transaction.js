@@ -28,7 +28,7 @@ let signing = false;
 let baseAddressUrl = ''
 let baseTxHashUrl = "";
 let salt="";
-
+let result = '';
 window.onload = ()=>{
     var script=document.createElement("script");
     script.setAttribute("type", "text/javascript");
@@ -82,9 +82,8 @@ function importExcel() {
 
 // 签名数据
 async function batchSignAndPostTransaction(data) {
-	// 失败的申请数量
-	let failureNum = 0;
 	// 成功的申请数量
+	result = '';
 	let successNum = 0;
 	// 整批数据长度
 	let length = data.length;
@@ -99,6 +98,7 @@ async function batchSignAndPostTransaction(data) {
 		nonce = await etherunm.getNonce(account.address); 
 	} catch (err) {
 		logger.error(`在远程节点上获取nonce值失败`);
+		result = "在远程节点上获取nonce值失败,请导入文件重试";
 		return;
 	}
 	for(let i = 0; i < length; i++) {
@@ -130,20 +130,22 @@ async function batchSignAndPostTransaction(data) {
 			let res = JSON.parse(response.body);
 			// 请求失败
 			if(res.code !== 200) {
-				failureNum++;
-				showFailReqBar(failureNum);
+				showFailReqBar(length-successNum);
 				logger.error(`提交签名数据失败 : ${res.msg}`);
-				if(res.code === 500) {
-					ipcRenderer.send('relogin','relogin');	
-				}
+				return "提交签名数据失败,请导入文件重试";
 			} else {
 				successNum++;
 				showSuccReqBar(successNum);
 			}
 		} catch (err) {
 			logger.error(`签名数据失败 ${err}`);
+			showFailReqBar(length-successNum);
+			result = "签名数据失败,请导入文件重试";
+			return;
 		}
 	}
+	result = "全部数据签名完毕,共" + successNum + "条";
+	return;
 }
 
 // 目前只能处理以太坊资产,到这一步默认是合法的数据
@@ -194,10 +196,11 @@ async function getExtractList(data) {
 		let obj = await extract.getExtractListByOrderIds(orderIds);
 		let body = JSON.parse(obj.body);
 		if(body.code !== 200) {
-		 	return null;
+		 	throw "获取线上数据失败";
 		}
 		return body.data;
 	} catch(err) {
+		logger.error('tibiliebiaoshibai');
 		throw `获取提币申请列表异常 ${err}`;
 	}
 }
@@ -498,7 +501,6 @@ function layuiInit(rows,count) {
 			try {
 				data = importExcel();
 			} catch (err) {
-				logger.error(err);
 				layer.alert(err);
 				signing = false;
 				return;
@@ -508,8 +510,9 @@ function layuiInit(rows,count) {
 				return;
 			}
 			// 记录导入的data
-			getExtractList(data).then(remoteData => {
+			getExtractList(data).then( remoteData => {
 				if(remoteData === null || remoteData === []) {
+					signing = false;
 					return;
 				}
 				let filter = filterData(remoteData.rows);
@@ -523,8 +526,14 @@ function layuiInit(rows,count) {
 						btn: ['知道了']
 					});
 					showImportStatusBar(filter.length);
-					batchSignAndPostTransaction(filter);
-					signing = false;	
+					batchSignAndPostTransaction(filter).then(()=>{
+						logger.info(result);
+						layer.msg(result,{
+							time : 3000,
+							btn : ['知道了']
+						});
+						signing = false;	
+					});
 				},(index)=>{
 					layer.close(index);
 					signing = false;
