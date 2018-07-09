@@ -197,7 +197,7 @@ layui.define(['laytpl', 'laypage', 'layer', 'form'], function(exports){
   
   //默认配置
   Class.prototype.config = {
-    limit: 10 //每页显示的数量
+    limit: 14 //每页显示的数量
     ,loading: true //请求数据时，是否显示loading
     ,cellMinWidth: 60 //所有单元格默认最小宽度
     ,text: {

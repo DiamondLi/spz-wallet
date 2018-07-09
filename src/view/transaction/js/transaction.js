@@ -17,7 +17,7 @@ const md5Utils = new MD5Utils();
 const transaction = new Transaction();
 const logger = log4js.getLogger();
 const utils = new Utils();
-const pageSize = 15;
+const pageSize = 14;
 let account = {};
 let masterProvider = '';
 let workerProviders = [];
@@ -115,7 +115,9 @@ async function batchSignAndPostTransaction(data) {
 				}
 			}
 			let gasPrice = await etherunm.getPrice();
-			gasPrice = utils.toWei(gasPrice,"gwei");
+			// console.log("gasPrice : " + gasPrice);
+			// gasPrice = utils.toWei(gasPrice,"gwei");
+			// console.log("gasPrice : " + gasPrice);
 			let signedTx = await sign(data[i],provider,nonce,gasPrice);
 			let packet = {
 				fromAddress : data[i].fromAddress,
@@ -132,7 +134,7 @@ async function batchSignAndPostTransaction(data) {
 			if(res.code !== 200) {
 				showFailReqBar(length-successNum);
 				logger.error(`提交签名数据失败 : ${res.msg}`);
-				return "提交签名数据失败,请导入文件重试";
+				return "提交签名数据失败,请导入文件重试或检查服务器状态";
 			} else {
 				successNum++;
 				showSuccReqBar(successNum);
@@ -196,12 +198,14 @@ async function getExtractList(data) {
 		let obj = await extract.getExtractListByOrderIds(orderIds);
 		let body = JSON.parse(obj.body);
 		if(body.code !== 200) {
-		 	throw "获取线上数据失败";
+		 	throw body.msg;
+		 	if(body.code === 500) {
+		 		ipcRenderer.send('relogin','relogin');
+		 	}
 		}
 		return body.data;
 	} catch(err) {
-		logger.error('tibiliebiaoshibai');
-		throw `获取提币申请列表异常 ${err}`;
+		throw `获取提币申请列表线上数据异常 ${err}`;
 	}
 }
  
@@ -401,8 +405,21 @@ function layuiInit(rows,count) {
 					}
 					return '<div>' + status + '</div>';
 				}}
-                ,{title: '交易哈希', templet:'<div><a href="#" class="a-font-color txhash">{{ d.txHash }}</a></div>'}
-                ,{title: '旷工费', templet:'<div>{{ d.minerFee }}</div>'}
+                ,{title: '交易哈希', templet:function(d) {
+                	var txHash = '';
+                	if(d.txHash != '0'){
+                		txHash = d.txHash;
+                	}
+                	return '<div><a href="#" class="a-font-color txhash">'+ txHash + 
+                	'</a></div>'
+                }}
+                ,{title: '旷工费(ETH)', templet:function(d) {
+                	var minerFee = '';
+                	if(d.minerFee != '0') {
+                		minerFee = d.minerFee;
+                	}
+                	return '<div>' + minerFee + '</div>';
+                }}
                 ,{title: '备注', templet:function(d){
 					var remarks = '';
 					if(d.remarks != null){
@@ -462,6 +479,8 @@ function layuiInit(rows,count) {
             var pageIns = laypage.render({
                 elem: 'page'
                 ,theme: '#5485ed'
+                ,height: '700px'
+                ,limit: 14
                 ,count: count
                 ,jump: function(obj, first){
 

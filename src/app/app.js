@@ -1,6 +1,5 @@
 /**
-*  @version: v1.0.0
-*  @author : yang.deng
+*  @version : v1.0.0
 */
 
 'use strict'
@@ -48,7 +47,7 @@ class App {
 	}
 
 	createtransactionWindow() {
-		transactionWindow = new browserWindow({width:1350,height:900,show:false,resizable:true});
+		transactionWindow = new browserWindow({width:1350,height:900,show:false,resizable:false});
 		transactionWindow.loadURL(transactionUrl);
 		transactionWindow.once('ready-to-show',()=>{
 			transactionWindow.show();
@@ -71,7 +70,8 @@ class App {
 
 	createKeystoreWindow() {
 		keystoreWindow = new browserWindow({width:566,height:400,show:false,
-				parent:transactionWindow,modal: true,frame : false});
+			parent:transactionWindow,modal: true,closable : false,
+			resizable:false});
 		keystoreWindow.loadURL(keystoreUrl);
 		keystoreWindow.once('ready-to-show',()=>{
 			keystoreWindow.show();
@@ -116,7 +116,7 @@ class App {
 		});
 
 		ipcMain.on('keystore',(event,account)=>{
-			keystoreWindow.close();
+			keystoreWindow.destroy();
 			transactionWindow.webContents.send('account',account);
 		});
 
