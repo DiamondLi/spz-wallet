@@ -47,7 +47,7 @@ class App {
 	}
 
 	createtransactionWindow() {
-		transactionWindow = new browserWindow({width:1350,height:900,show:false,resizable:false});
+		transactionWindow = new browserWindow({width:1440,height:900,show:false,resizable:false});
 		transactionWindow.loadURL(transactionUrl);
 		transactionWindow.once('ready-to-show',()=>{
 			transactionWindow.show();

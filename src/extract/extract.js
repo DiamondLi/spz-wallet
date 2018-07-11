@@ -1,5 +1,5 @@
 /**
-* @author : yang.deng
+* @author : 
 */
 'use strict'
 const request = require('request');
@@ -35,7 +35,6 @@ class Extract {
 			formData['pageSize'] = pageSize;
 		}
 		let data = JSON.parse(JSON.stringify(formData));
-		console.log(`请求订单数据为 ${JSON.stringify(formData)}`);
 		return new Promise((resolve,reject)=>{
 			request.post({url:url,formData:data,jar:j}, (error, response, body) => {  
 			    if(error) {

@@ -44,6 +44,9 @@ class Utils {
 		return this.web3.utils.isAddress(address);
 	}
 
+	hexToNumber(hex) {
+		return this.web3.utils.hexToNumber(hex);
+	}
 }
 
 module.exports = Utils;

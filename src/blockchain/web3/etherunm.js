@@ -1,6 +1,6 @@
 /**
 *  @version: v1.0.0
-*  @author : yang.deng
+*  @author : 
 */
 
 'use strict'
@@ -53,6 +53,10 @@ class Etherumn {
 	/** */
 	getPrice() {
 		return this.web3.eth.getGasPrice();
+	}
+
+	getId() {
+		return this.web3.eth.net.getId();
 	}
 }
 
