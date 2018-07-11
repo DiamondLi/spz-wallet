@@ -97,8 +97,19 @@ async function batchSignAndPostTransaction(data) {
 	try {
 		nonce = await etherunm.getNonce(account.address); 
 	} catch (err) {
-		logger.error(`在远程节点上获取nonce值失败`);
+		logger.error(`在远程节点上获取nonce值失败 : ${err}`);
 		result = "在远程节点上获取nonce值失败,请导入文件重试";
+		return;
+	}
+	try {
+		let id = await etherunm.getId();
+		if(id != 3) {
+			result = "提币错误,错误的provider,请检查配置文件";
+			return;
+		}
+	} catch (err) {
+		logger.error(`获取远程节点NetVesion失败 ${err}`)
+		result = "获取远程节点NetVesion失败";
 		return;
 	}
 	for(let i = 0; i < length; i++) {
@@ -115,9 +126,6 @@ async function batchSignAndPostTransaction(data) {
 				}
 			}
 			let gasPrice = await etherunm.getPrice();
-			// console.log("gasPrice : " + gasPrice);
-			// gasPrice = utils.toWei(gasPrice,"gwei");
-			// console.log("gasPrice : " + gasPrice);
 			let signedTx = await sign(data[i],provider,nonce,gasPrice);
 			let packet = {
 				fromAddress : data[i].fromAddress,
@@ -374,16 +382,16 @@ function layuiInit(rows,count) {
             ,skin: 'line' //行边框风格
             ,cols: [[ //表头
                 {title: '币种', templet:'<div>{{ d.coinName }}</div>'}
-                ,{title: '流水号', width:'15%', templet:'<div>{{ d.orderId }}</div>'}
+                ,{title: '流水号', width:'20%', templet:'<div>{{ d.orderId }}</div>'}
                 ,{title: '数量', templet:'<div>{{ d.num }}</div>'}
-                ,{title: '转出地址', width:'15%', templet:function(d){
+                ,{title: '转出地址', width:'20%', templet:function(d){
 					var fromAddress = '';
 					if(d.fromAddress != null){
                         fromAddress = d.fromAddress;
 					}
 					return '<div><a href="#" class="a-font-color outAddress">' + fromAddress + '</a></div>';
 				}}
-                ,{title: '转入地址', width:'15%', templet:function(d){
+                ,{title: '转入地址', width:'20%', templet:function(d){
 					var toAddress = '';
 					if(d.toAddress != null){
 						toAddress = d.toAddress;
@@ -413,7 +421,7 @@ function layuiInit(rows,count) {
                 	return '<div><a href="#" class="a-font-color txhash">'+ txHash + 
                 	'</a></div>'
                 }}
-                ,{title: '旷工费(ETH)', templet:function(d) {
+                ,{title: '矿工费(ETH)', templet:function(d) {
                 	var minerFee = '';
                 	if(d.minerFee != '0') {
                 		minerFee = d.minerFee;
@@ -430,7 +438,9 @@ function layuiInit(rows,count) {
             ]]
         });
 
+        layer.load(2);
         renderPage(count);
+        layer.closeAll();
 
         $(document).on('click','#search',function(){
             var fromAddress = $("input[name='fromAddress']").val();
