@@ -11,7 +11,7 @@ class Extract {
 		this.cookie = cookie;
 	}
 
-	getExtractList(orderIds,fromAddress,toAddress,status,pageSize,pageNo) {
+	getExtractList(orderIds,fromAddress,toAddress,status,pageSize,pageNo,coinName) {
 		let j = request.jar();
 		let cookie_ = request.cookie(this.cookie);
 		j.setCookie(cookie_, url);
@@ -34,6 +34,9 @@ class Extract {
 		if(typeof pageSize !== 'undefined' && pageSize !== null) {
 			formData['pageSize'] = pageSize;
 		}
+		if(typeof coinName !== 'undefined' && coinName !== null && coinName !== '') {
+			formData['coinName'] = coinName;
+		}
 		let data = JSON.parse(JSON.stringify(formData));
 		return new Promise((resolve,reject)=>{
 			request.post({url:url,formData:data,jar:j}, (error, response, body) => {  
@@ -52,25 +55,25 @@ class Extract {
 
 	// 导入处理数据
 	getExtractListByOrderIds(orderIds) {
-		return this.getExtractList(orderIds,null,null,1,null,null);
+		return this.getExtractList(orderIds,null,null,1,null,null,null);
 	}
 
 	// 以下全为视图
 
 	getExtractListByFromAddress(fromAddress,pageSize,pageIndex) {
-		return this.getExtractList(null,fromAddress,null,null,pageSize,pageIndex);
+		return this.getExtractList(null,fromAddress,null,null,pageSize,pageIndex,null);
 	}
 
 	getExtractListByToAddress(toAddress,pageSize,pageIndex) {
-		return this.getExtractList(null,null,toAddress,null,pageSize,pageIndex);
+		return this.getExtractList(null,null,toAddress,null,pageSize,pageIndex,null);
 	}
 
 	getExtractListByStatus(status,pageSize,pageIndex) {
-		return this.getExtractList(null,null,null,status,pageSize,pageIndex);
+		return this.getExtractList(null,null,null,status,pageSize,pageIndex,null);
 	}
 
 	getExtractListAll(pageSize,pageIndex) {
-		return this.getExtractList(null,null,null,null,pageSize,pageIndex);
+		return this.getExtractList(null,null,null,null,pageSize,pageIndex,null);
 	}
 
 	setCookie(cookie) {

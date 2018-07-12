@@ -13,6 +13,7 @@ const Etherunm = require('../../../blockchain/web3/etherunm.js');
 const Extract = require('../../../extract/extract.js');
 const Transaction = require('../../../extract/transaction.js');
 const MD5Utils = require('../../../common/md5Utils.js');
+const Decimal = require('decimal.js');
 const md5Utils = new MD5Utils();
 const transaction = new Transaction();
 const logger = log4js.getLogger();
@@ -80,6 +81,16 @@ function importExcel() {
 	return excel.read();
 }
 
+function isSameCoin(data) {
+	logger.info(data.length);
+	for(let i = 1; i < data.length;i++) {
+		if(data[i].coin_name !== data[i-1].coin_name) {
+			logger.info(i + "|| " + data[i].coin_name + " || " + data[i-1].coin_name);
+			throw "导入数据必须为同一币种";
+		}
+	}
+}
+
 // 签名数据
 async function batchSignAndPostTransaction(data) {
 	// 成功的申请数量
@@ -93,28 +104,29 @@ async function batchSignAndPostTransaction(data) {
 	let indexOfProvider = 0;
 	let provider = workerProviders[indexOfProvider++ % lenOfWorkerProviders];
 	let etherunm = new Etherunm(provider);
-	let nonce;
 	try {
-		nonce = await etherunm.getNonce(account.address); 
-	} catch (err) {
-		logger.error(`在远程节点上获取nonce值失败 : ${err}`);
-		result = "在远程节点上获取nonce值失败,请导入文件重试";
-		return;
-	}
-	try {
-		let id = await etherunm.getId();
-		if(id != 3) {
+		// 初始的nonce
+		let nonce = await etherunm.getNonce(account.address); 
+		let networkId = await etherunm.getId();
+		// 网络ID，即chainID
+		if(networkId != 3) {
 			result = "提币错误,错误的provider,请检查配置文件";
 			return;
 		}
-	} catch (err) {
-		logger.error(`获取远程节点NetVesion失败 ${err}`)
-		result = "获取远程节点NetVesion失败";
-		return;
-	}
-	for(let i = 0; i < length; i++) {
-		data[i].fromAddress = account.address;
-		try {
+		// 初始的以太坊余额
+		let initBalance = await etherunm.getBalance(account.address);
+		let balance = new Decimal(utils.fromWei(initBalance));
+		let tokenBalance;
+		let initTokenBalance;
+		if(data[0].coinName !== 'ETH') {
+			let contract = new Contract(provider);
+			initTokenBalance = await contract.getBalance(account.address,data[0].tokenAddress);
+			tokenBalance = new Decimal(utils.fromWei(initTokenBalance));
+		}
+		console.log(" tokenBalance : " + tokenBalance);
+		for(let i = 0; i < length; i++) {
+			console.log("第" + i + "条");
+			data[i].fromAddress = account.address;
 			// 查询pending状态 nonce
 			if(i !== 0) {
 				while(true) {
@@ -126,7 +138,7 @@ async function batchSignAndPostTransaction(data) {
 				}
 			}
 			let gasPrice = await etherunm.getPrice();
-			let signedTx = await sign(data[i],provider,nonce,gasPrice);
+			let signedTx = await sign(data[i],provider,nonce,gasPrice,balance,tokenBalance);
 			let packet = {
 				fromAddress : data[i].fromAddress,
 				orderId : data[i].orderId,
@@ -143,38 +155,58 @@ async function batchSignAndPostTransaction(data) {
 				showFailReqBar(length-successNum);
 				logger.error(`提交签名数据失败 : ${res.msg}`);
 				return "提交签名数据失败,请导入文件重试或检查服务器状态";
+			} 
+			successNum++;
+			showSuccReqBar(successNum);
+			let number = new Decimal(data[i].num);
+			if(data[i].coinName === 'ETH') {
+				let totalGasUsed = new Decimal(90000).mul(new Decimal(utils.fromWei(gasPrice)));
+				let totalCost = totalGasUsed.add(number);
+				balance = balance.sub(totalCost);
+				$('#eth_balance').html('');
+				$('#eth_balance').append(balance.toNumber());
 			} else {
-				successNum++;
-				showSuccReqBar(successNum);
+				balance = balance.sub(new BigDecimal(90000).mul(new Decimal(utils.fromWei(gasPrice))));
+				tokenBalance = tokenBalance.sub(number);
+				$('#eth_balance').html('');
+				$('#eth_balance').append(balance.toNumber());
+				let id = data[i].coinName + 'balance';
+				$('#id').html('');
+				$('#id').append(tokenBalance.toNumber());
 			}
-		} catch (err) {
-			logger.error(`签名数据失败 ${err}`);
-			showFailReqBar(length-successNum);
-			result = "签名数据失败,请导入文件重试";
-			return;
 		}
+	} catch (err) {
+		logger.error(`远程节点网络异常 : ${err}`);
+		showFailReqBar(length-successNum);
+		result = `提币异常,请导入文件重试 ${err}`;
+		return;
 	}
 	result = "全部数据签名完毕,共" + successNum + "条";
 	return;
 }
 
 // 目前只能处理以太坊资产,到这一步默认是合法的数据
-async function sign(data,provider,nonce,gasPrice) {
+async function sign(data,provider,nonce,gasPrice,balance,tokenBalance) {
 	// 判断是不是以太坊本身
 	if(data.coinName === 'ETH') {
-		return await signForEthermun(data,provider,nonce,gasPrice);
+		return await signForEthermun(data,provider,nonce,gasPrice,balance);
 	} else {
-		return await signForToken(data,provider,nonce,gasPrice);
+		return await signForToken(data,provider,nonce,gasPrice,balance,tokenBalance);
 	}
 }
 
 // 以太坊
-async function signForEthermun(data,provider,nonce,gasPrice) {
+async function signForEthermun(data,provider,nonce,gasPrice,balance) {
 	try {
 		let etherunm = new Etherunm(provider);
 		let amount = utils.toWei(data.num);
 		//let estimateGas = await etherunm.estimateGas(account.address,data.toAddress,amount);
 		let estimateGas = 90000;
+		let cost = new Decimal(utils.fromWei(gasPrice)).mul(new BigDecimal(estimateGas));
+		cost = cost.add(new Decimal(data.num));
+		if(balance.lessThan(cost)) {
+			 throw "以太坊余额不足";
+		}
 		return await etherunm.signTransaction(account,data.toAddress,amount,estimateGas,nonce,gasPrice);
 	} catch (err) {
 		throw err;
@@ -182,12 +214,23 @@ async function signForEthermun(data,provider,nonce,gasPrice) {
 }
 
 //ERC20代币
-async function signForToken(data,provider,nonce,gasPrice) {
+async function signForToken(data,provider,nonce,gasPrice,balance,tokenBalance) {
 	try {
 		let etherunm = new Etherunm(provider);
 		let contract = new Contract(provider);
 		let amount = utils.toWei(data.num);
 		let estimateGas = 90000;
+		console.log("tokenBalance : " + tokenBalance + " data.num : " + data.num);
+		// 代币余额
+		if(tokenBalance.lessThan(new Decimal(data.num))) {
+			throw data.coinName + "币余额不足"; 
+		}
+		let estimate = new Decimal(estimateGas);
+		let gaspri = new Decimal(utils.fromWei(gasPrice));
+		let cost = estimate.mul(gaspri);
+		if(balance.lessThan(cost)) {
+			throw "以太坊余额不足";
+		}
 		//let estimateGas = await contract.estimateGas(account.address,data.toAddress,amount,data.tokenAddress);
 		return await contract.signTransaction(account,data.toAddress,amount,data.tokenAddress,estimateGas,nonce,gasPrice);
 	} catch (err) {
@@ -359,7 +402,7 @@ function showEthAccount(address,balance) {
 
 function showTokenAccount(name,balance) {
     let tokenHtml = '<tr><td>'+ name +'</td>';
-    tokenHtml += '<td>'+ balance +'</td></tr>';
+    tokenHtml += '<td id="'+name+'"balance>'+ balance +'</td></tr>';
     $('#token_list').append(tokenHtml);
 }
 
@@ -382,21 +425,21 @@ function layuiInit(rows,count) {
             ,skin: 'line' //行边框风格
             ,cols: [[ //表头
                 {title: '币种', templet:'<div>{{ d.coinName }}</div>'}
-                ,{title: '流水号', width:'20%', templet:'<div>{{ d.orderId }}</div>'}
+                ,{title: '流水号', width:'20%', templet:'<div style="font-size:12px">{{ d.orderId }}</div>'}
                 ,{title: '数量', templet:'<div>{{ d.num }}</div>'}
                 ,{title: '转出地址', width:'20%', templet:function(d){
 					var fromAddress = '';
 					if(d.fromAddress != null){
                         fromAddress = d.fromAddress;
 					}
-					return '<div><a href="#" class="a-font-color outAddress">' + fromAddress + '</a></div>';
+					return '<div><a href="javascript:;" class="a-font-color outAddress" style="font-size:12px">' + fromAddress + '</a></div>';
 				}}
                 ,{title: '转入地址', width:'20%', templet:function(d){
 					var toAddress = '';
 					if(d.toAddress != null){
 						toAddress = d.toAddress;
 					}
-					return '<div><a href="javascript:;" class="a-font-color intoAddress">' + toAddress + '</a></div>';
+					return '<div><a href="javascript:;" class="a-font-color intoAddress" style="font-size:12px">' + toAddress + '</a></div>';
 				}}
                 ,{title: '状态', templet:function(d){
 					var status = '';
@@ -438,16 +481,15 @@ function layuiInit(rows,count) {
             ]]
         });
 
-        layer.load(2);
         renderPage(count);
-        layer.closeAll();
 
         $(document).on('click','#search',function(){
-            var fromAddress = $("input[name='fromAddress']").val();
-            var toAddress = $("input[name='toAddress']").val();
-            var status = $('#statusId option:selected').val();
+            let fromAddress = $("input[name='fromAddress']").val();
+            let toAddress = $("input[name='toAddress']").val();
+            let status = $('#statusId option:selected').val();
+            let coinName = $("input[name='coinName']").val();
             let extract = new Extract(cookie);
-            extract.getExtractList(null,fromAddress,toAddress,status,pageSize,1).then(list=>{
+            extract.getExtractList(null,fromAddress,toAddress,status,pageSize,1,coinName).then(list=>{
                 let body = JSON.parse(list.body);
                 if(body.code !== 200) {
                     layer.msg(body.msg);
@@ -499,9 +541,9 @@ function layuiInit(rows,count) {
                         var fromAddress = $("input[name='fromAddress']").val();
                         var toAddress = $("input[name='toAddress']").val();
                         var status = $('#statusId option:selected').val();
-
+                        var coinName = $("input[name='coinName']").val();
                         let extract = new Extract(cookie);
-                        extract.getExtractList(null,fromAddress,toAddress,status,obj.limit, obj.curr).then(list=>{
+                        extract.getExtractList(null,fromAddress,toAddress,status,obj.limit, obj.curr,coinName).then(list=>{
                             let body = JSON.parse(list.body);
                             if(body.code !== 200) {
                                 layer.msg("msg is " + body.code);
@@ -529,12 +571,13 @@ function layuiInit(rows,count) {
 			let data = null;
 			try {
 				data = importExcel();
+				if(data === null) {
+					signing = false;
+					return;
+				}
+				isSameCoin(data);
 			} catch (err) {
-				layer.alert(err);
-				signing = false;
-				return;
-			}
-			if(data === null) {
+				layer.alert(`错误！${err}`);
 				signing = false;
 				return;
 			}

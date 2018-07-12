@@ -2,15 +2,20 @@
 
 Simple Node.js module for [Mailgun](http://www.mailgun.com).
 
+[![npm version](https://img.shields.io/npm/v/mailgun-js.svg?style=flat-square)](https://www.npmjs.com/package/mailgun-js)
+[![License](https://img.shields.io/github/license/bojand/mailgun-js.svg?style=flat-square)](https://raw.githubusercontent.com/bojand/mailgun-js/master/LICENSE.txt)
+<!---
 [![NPM](https://nodei.co/npm/mailgun-js.png?downloads=true&stars=true)](https://nodei.co/npm/mailgun-js/)
 
 [![NPM](https://nodei.co/npm-dl/mailgun-js.png)](https://nodei.co/npm/mailgun-js/)
-
+-->
 ## Installation
 
 `npm install mailgun-js`
 
 ## Usage overview
+
+This is a simple Node.js module for interacting with the [Mailgun](http://www.mailgun.com) API. This module is intended to be used within Node.js environment and **not** from the browser. For browser use the [mailgun.js](https://github.com/mailgun/mailgun-js) module.
 
 Please see [Mailgun Documentation](https://documentation.mailgun.com) for full Mailgun API reference.
 
@@ -32,7 +37,7 @@ var data = {
   from: 'Excited User <me@samples.mailgun.org>',
   to: 'serobnic@mail.ru',
   subject: 'Hello',
-  text: 'Testing some Mailgun awesomness!'
+  text: 'Testing some Mailgun awesomeness!'
 };
 
 mailgun.messages().send(data, function (error, body) {
@@ -76,6 +81,10 @@ list.members().list(function (err, members) {
 list.members('bob@gmail.com').update({ name: 'Foo Bar' }, function (err, body) {
   console.log(body);
 });
+
+list.members('bob@gmail.com').delete(function (err, data) {
+  console.log(data);
+});
 ```
 
 #### Options
@@ -83,7 +92,8 @@ list.members('bob@gmail.com').update({ name: 'Foo Bar' }, function (err, body) {
 `Mailgun` object constructor options:
 
 * `apiKey` - Your Mailgun API KEY
-* `domain` - Your Mailgun Domain
+* `publicApiKey` - Your public Mailgun API KEY
+* `domain` - Your Mailgun Domain (Please note: domain field is `MY-DOMAIN-NAME.com`, not https://api.mailgun.net/v3/MY-DOMAIN-NAME.com)
 * `mute` - Set to `true` if you wish to mute the console error logs in `validateWebhook()` function
 * `proxy` - The proxy URI in format `http[s]://[auth@]host:port`. ex: `'http://proxy.example.com:8080'`
 * `timeout` - Request timeout in milliseconds
@@ -92,7 +102,9 @@ list.members('bob@gmail.com').update({ name: 'Foo Bar' }, function (err, body) {
 * `port` - the mailgun port (default: '443')
 * `endpoint` - the mailgun host (default: '/v3')
 * `retry` - the number of **total attempts** to do when performing requests. Default is `1`.
-That is, we will try an operation only once with no retries on error.
+That is, we will try an operation only once with no retries on error. You can also use a config 
+object compatible with the `async` library for more control as to how the retries take place.
+See docs [here](https://caolan.github.io/async/docs.html#retry) 
 
 
 #### Attachments
@@ -111,7 +123,7 @@ var data = {
   from: 'Excited User <me@samples.mailgun.org>',
   to: 'serobnic@mail.ru',
   subject: 'Hello',
-  text: 'Testing some Mailgun awesomness!',
+  text: 'Testing some Mailgun awesomeness!',
   attachment: filepath
 };
 
@@ -131,7 +143,7 @@ var data = {
   from: 'Excited User <me@samples.mailgun.org>',
   to: 'serobnic@mail.ru',
   subject: 'Hello',
-  text: 'Testing some Mailgun awesomness!',
+  text: 'Testing some Mailgun awesomeness!',
   attachment: file
 };
 
@@ -150,7 +162,7 @@ var data = {
   from: 'Excited User <me@samples.mailgun.org>',
   to: 'serobnic@mail.ru',
   subject: 'Hello',
-  text: 'Testing some Mailgun awesomness!',
+  text: 'Testing some Mailgun awesomeness!',
   attachment: file
 };
 
@@ -185,7 +197,7 @@ var data = {
   from: 'Excited User <me@samples.mailgun.org>',
   to: 'serobnic@mail.ru',
   subject: 'Hello',
-  text: 'Testing some Mailgun awesomness!',
+  text: 'Testing some Mailgun awesomeness!',
   attachment: attch
 };
 
@@ -217,30 +229,32 @@ mailgun.messages().send(data, function (error, body) {
 Sending messages in MIME format can be accomplished using the `sendMime()` function of the `messages()` proxy object.
 The `data` parameter for the function has to have `to` and `message` properties. The `message` property can be a full
 file path to the MIME file, a stream of the file, or a string representation of the MIME
-message. To build a MIME string you can use the [Mail Composer] (https://www.npmjs.org/package/mailcomposer) library.
+message. To build a MIME string you can use the [nodemailer](https://www.npmjs.org/package/nodemailer) library.
 Some examples:
 
 ```js
 var domain = 'mydomain.org';
 var mailgun = require('mailgun-js')({ apiKey: "YOUR API KEY", domain: domain });
-var mailcomposer = require('mailcomposer');
+var MailComposer = require('nodemailer/lib/mail-composer');
 
-var mail = mailcomposer({
+var mailOptions = {
   from: 'you@samples.mailgun.org',
   to: 'mm@samples.mailgun.org',
   subject: 'Test email subject',
   text: 'Test email text',
   html: '<b> Test email text </b>'
-});
+};
 
-mail.build(function(mailBuildError, message) {
+var mail = new MailComposer(mailOptions);
+
+mail.compile().build((err, message) => {
 
     var dataToSend = {
         to: 'mm@samples.mailgun.org',
         message: message.toString('ascii')
     };
 
-    mailgun.messages().sendMime(dataToSend, function (sendError, body) {
+    mailgun.messages().sendMime(dataToSend, (sendError, body) => {
         if (sendError) {
             console.log(sendError);
             return;
@@ -321,7 +335,7 @@ mailgun.get('/samples.mailgun.org/stats', { event: ['sent', 'delivered'] }, func
 
 ## Promises
 
-Module works with Node-style callbacks, but also implements promises with the [Q](http://github.com/kriskowal/q) library.
+Module works with Node-style callbacks, but also implements promises with the [promisify-call](https://www.npmjs.com/package/promisify-call) library.
 
 ```js
 mailgun.lists('mylist@mydomain.com').info().then(function (data) {
@@ -363,15 +377,62 @@ function router(app) {
 }
 ```
 
-## Tests
+## Email Addresses validation
 
-To run the test suite you must first have a Mailgun account with a domain setup. Then create a file named _./test/auth.json_, which contains your credentials as JSON, for example:
+These routes require Mailgun public API key.
+Please check Mailgun [email validation documentation](https://documentation.mailgun.com/api-email-validation.html) for more responses details.
 
-```json
-{ "api_key": "key-XXXXXXXXXXXXXXXXXXXXXXX", "domain": "mydomain.mailgun.org" }
+### Validate Email Address
+
+**mailgun.validate(address, private, options, fn)**
+
+Checks if email is valid.
+
+- `private` - wether it's private validate
+- `options` - any additional options
+
+Example usage:
+
+```js
+var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
+
+mailgun.validate('test@mail.com', function (err, body) {
+  if(body && body.is_valid){
+    // do something
+  }
+});
 ```
 
-You should edit _./test/fixture.json_ and modify the data to match your context.
+### Parse Email Addresses list
+
+Parses list of email addresses and returns two lists:
+  - parsed email addresses
+  - unparseable email addresses
+
+Example usage:
+
+```js
+var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
+
+mailgun.parse([ 'test@mail.com', 'test2@mail.com' ], function (err, body) {
+  if(error){
+    // handle error
+  }else{
+    // do something with parsed addresses: body.parsed;
+    // do something with unparseable addresses: body.unparseable;
+  }
+});
+```
+
+## Tests
+
+To run the test suite you must first have a Mailgun account with a domain setup. Then create a file named _./test/data/auth.json_, which contains your credentials as JSON, for example:
+
+```json
+{ "api_key": "key-XXXXXXXXXXXXXXXXXXXXXXX", "public_api_key": "pubkey-XXXXXXXXXXXXXXXXXXXXXXX", "domain": "mydomain.mailgun.org" }
+```
+
+You should edit _./test/data/fixture.json_ and modify the data to match your context.
 
 Then install the dev dependencies and execute the test suite:
 
@@ -389,6 +450,6 @@ The general design and some code was heavily inspired by [node-heroku-client](ht
 
 ## License
 
-Copyright 2012, 2013, 2014 OneLobby
+Copyright (c) 2012 - 2017 OneLobby and Bojan D.
 
 Licensed under the MIT License.
