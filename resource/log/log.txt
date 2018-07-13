@@ -5952,3 +5952,19 @@
     at IncomingMessage.<anonymous> (E:\extract_client\node_modules\request\request.js:1079:12)
     at Object.onceWrapper (events.js:313:30)
     at emitNone (events.js:111:20)
+[2018-07-13T07:59:03.801] [ERROR] info - ReferenceError: user is not defined
+    at login (file:///D:/Program/nodejs/spz-wallet/src/view/login/js/login.js:23:28)
+    at HTMLButtonElement.onclick (file:///D:/Program/nodejs/spz-wallet/src/view/login/html/login.html:30:97)
+[2018-07-13T08:17:55.332] [INFO] info - {"lastKeystore":"E:\\extract_client\\test\\keystore.json"}
+[2018-07-13T08:18:01.544] [ERROR] info - { Error: ENOENT: no such file or directory, open 'E:\extract_client\test\keystore.json'
+    at Object.fs.openSync (fs.js:646:18)
+    at Object.module.(anonymous function) [as openSync] (ELECTRON_ASAR.js:172:20)
+    at Object.fs.readFileSync (fs.js:551:33)
+    at Object.fs.readFileSync (ELECTRON_ASAR.js:510:29)
+    at Utils.importKeyStore (D:\Program\nodejs\spz-wallet\src\blockchain\web3\utils.js:14:17)
+    at submit (file:///D:/Program/nodejs/spz-wallet/src/view/wallet/js/wallet.js:53:23)
+    at HTMLButtonElement.onclick (file:///D:/Program/nodejs/spz-wallet/src/view/wallet/html/wallet.html:31:100)
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'E:\\extract_client\\test\\keystore.json' }
