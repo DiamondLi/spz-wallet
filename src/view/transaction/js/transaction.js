@@ -107,10 +107,15 @@ async function batchSignAndPostTransaction(data) {
 	let indexOfProvider = 0;
 	let provider = workerProviders[indexOfProvider++ % lenOfWorkerProviders];
 	let etherunm = new Etherunm(provider);
+	if(length === 0) {
+		result = "共0条可提币数据,本次操作完成";
+		return;
+	}
 	try {
 		// 初始的nonce
 		let nonce = await etherunm.getNonce(account.address); 
 		let networkId = await etherunm.getId();
+
 		// 网络ID，即chainID
 		if(networkId != 3) {
 			result = "提币错误,错误的provider,请检查配置文件";
@@ -168,14 +173,17 @@ async function batchSignAndPostTransaction(data) {
 				balance = balance.sub(totalCost);
 				$('#eth_balance').html('');
 				$('#eth_balance').append(balance.toNumber());
+				console.log("balance : " + balance.toNumber());
 			} else {
 				balance = balance.sub(new Decimal(90000).mul(new Decimal(utils.fromWei(gasPrice))));
 				tokenBalance = tokenBalance.sub(number);
 				$('#eth_balance').html('');
 				$('#eth_balance').append(balance.toNumber());
-				let id = data[i].coinName + 'balance';
-				$('#id').html('');
-				$('#id').append(tokenBalance.toNumber());
+				let id = '#'+ data[i].coinName;
+				console.log("id : " + id + " tokenBalance : " + tokenBalance.toNumber());
+				$(id).html('');
+				$(id).append(tokenBalance.toNumber());
+				console.log("daibi balance : " + balance.toNumber());
 			}
 		}
 	} catch (err) {
@@ -405,7 +413,7 @@ function showEthAccount(address,balance) {
 
 function showTokenAccount(name,balance) {
     let tokenHtml = '<tr><td>'+ name +'</td>';
-    tokenHtml += '<td id="'+name+'"balance>'+ balance +'</td></tr>';
+    tokenHtml += '<td id="'+name+'">'+ balance +'</td></tr>';
     $('#token_list').append(tokenHtml);
 }
 
@@ -596,11 +604,12 @@ function layuiInit(rows,count) {
 				}
 				layer.confirm("是否确认提币?",{btn:['是','否']},(index)=>{
 					layer.close(index);
-					layer.msg(`从excel文件导入数据${data.length}条,有效数据为${filter.length}条,开始提币...`,{
+					layer.msg(`从excel文件导入数据${data.length}条,有效数据为${filter.length}条`,{
 						time : 6000,
 						btn: ['知道了']
 					});
 					showImportStatusBar(filter.length);
+					console.log('在这个位置');
 					batchSignAndPostTransaction(filter).then(()=>{
 						logger.info(result);
 						layer.msg(result,{
