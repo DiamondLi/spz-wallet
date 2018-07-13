@@ -95,6 +95,9 @@ function isSameCoin(data) {
 async function batchSignAndPostTransaction(data) {
 	// 成功的申请数量
 	result = '';
+	$('#importDataBar').html('');
+	$('#requestSuccDataBar').html('');
+	$('#requestFailDataBar').html('');
 	let successNum = 0;
 	// 整批数据长度
 	let length = data.length;
@@ -166,7 +169,7 @@ async function batchSignAndPostTransaction(data) {
 				$('#eth_balance').html('');
 				$('#eth_balance').append(balance.toNumber());
 			} else {
-				balance = balance.sub(new BigDecimal(90000).mul(new Decimal(utils.fromWei(gasPrice))));
+				balance = balance.sub(new Decimal(90000).mul(new Decimal(utils.fromWei(gasPrice))));
 				tokenBalance = tokenBalance.sub(number);
 				$('#eth_balance').html('');
 				$('#eth_balance').append(balance.toNumber());
@@ -202,7 +205,7 @@ async function signForEthermun(data,provider,nonce,gasPrice,balance) {
 		let amount = utils.toWei(data.num);
 		//let estimateGas = await etherunm.estimateGas(account.address,data.toAddress,amount);
 		let estimateGas = 90000;
-		let cost = new Decimal(utils.fromWei(gasPrice)).mul(new BigDecimal(estimateGas));
+		let cost = new Decimal(utils.fromWei(gasPrice)).mul(new Decimal(estimateGas));
 		cost = cost.add(new Decimal(data.num));
 		if(balance.lessThan(cost)) {
 			 throw "以太坊余额不足";
