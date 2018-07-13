@@ -131,9 +131,7 @@ async function batchSignAndPostTransaction(data) {
 			initTokenBalance = await contract.getBalance(account.address,data[0].tokenAddress);
 			tokenBalance = new Decimal(utils.fromWei(initTokenBalance));
 		}
-		console.log(" tokenBalance : " + tokenBalance);
 		for(let i = 0; i < length; i++) {
-			console.log("第" + i + "条");
 			data[i].fromAddress = account.address;
 			// 查询pending状态 nonce
 			if(i !== 0) {
@@ -173,17 +171,14 @@ async function batchSignAndPostTransaction(data) {
 				balance = balance.sub(totalCost);
 				$('#eth_balance').html('');
 				$('#eth_balance').append(balance.toNumber());
-				console.log("balance : " + balance.toNumber());
 			} else {
 				balance = balance.sub(new Decimal(90000).mul(new Decimal(utils.fromWei(gasPrice))));
 				tokenBalance = tokenBalance.sub(number);
 				$('#eth_balance').html('');
 				$('#eth_balance').append(balance.toNumber());
 				let id = '#'+ data[i].coinName;
-				console.log("id : " + id + " tokenBalance : " + tokenBalance.toNumber());
 				$(id).html('');
 				$(id).append(tokenBalance.toNumber());
-				console.log("daibi balance : " + balance.toNumber());
 			}
 		}
 	} catch (err) {
@@ -216,9 +211,10 @@ async function signForEthermun(data,provider,nonce,gasPrice,balance) {
 		let cost = new Decimal(utils.fromWei(gasPrice)).mul(new Decimal(estimateGas));
 		cost = cost.add(new Decimal(data.num));
 		if(balance.lessThan(cost)) {
-			 throw "以太坊余额不足";
+			throw "以太坊余额不足";
 		}
-		return await etherunm.signTransaction(account,data.toAddress,amount,estimateGas,nonce,gasPrice);
+		let signtx = await etherunm.signTransaction(account,data.toAddress,amount,estimateGas,nonce,gasPrice);
+		return signtx;
 	} catch (err) {
 		throw err;
 	}
@@ -231,7 +227,6 @@ async function signForToken(data,provider,nonce,gasPrice,balance,tokenBalance) {
 		let contract = new Contract(provider);
 		let amount = utils.toWei(data.num);
 		let estimateGas = 90000;
-		console.log("tokenBalance : " + tokenBalance + " data.num : " + data.num);
 		// 代币余额
 		if(tokenBalance.lessThan(new Decimal(data.num))) {
 			throw data.coinName + "币余额不足"; 
@@ -276,9 +271,14 @@ function filterData(data) {
 	let filter = [];
 	let utils = new Utils();
 	for(let i = 0; i < data.length; i++) {
-		if(utils.isAddress(data[i].toAddress) && 
-			utils.isAddress(data[i].tokenAddress)) {
-			filter.push(data[i]);
+		if(utils.isAddress(data[i].toAddress)) {
+			if(data[i].coinName !== 'ETH') {
+				if(utils.isAddress(data[i].tokenAddress)) {
+					filter.push(data[i]);
+				}
+			} else {
+				filter.push(data[i]);
+			}
 		}
 	}
 	return filter;
@@ -609,7 +609,6 @@ function layuiInit(rows,count) {
 						btn: ['知道了']
 					});
 					showImportStatusBar(filter.length);
-					console.log('在这个位置');
 					batchSignAndPostTransaction(filter).then(()=>{
 						logger.info(result);
 						layer.msg(result,{
